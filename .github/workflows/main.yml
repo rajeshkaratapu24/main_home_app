@@ -1,14 +1,18 @@
-
-name: WOG App Build
+name: WOG Web Preview
 on:
   push:
-    branches: [ main ] # Nuvvu main branch lo em change chesina build start avtundi
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4 # Updated to v4
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -19,20 +23,21 @@ jobs:
         run: flutter pub get
 
       - name: Build Web Preview
-        run: flutter build web --release
+        # --base-href vadadam valla GitHub Pages lo images/links break avvavu
+        run: flutter build web --release --base-href /${{ github.event.repository.name }}/
 
-      - name: Build Android APK
-        run: flutter build apk --release
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3 # Updated to v3 (latest for pages)
         with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/web
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/web
-          
+        id: deployment
+        uses: actions/deploy-pages@v4 # Updated to v4
