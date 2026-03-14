@@ -1,43 +1,22 @@
-name: WOG Web Preview
-on:
-  push:
-    branches: [ main ]
+name: wog_app
+description: "Word of God - Flutter Web and Android App"
+version: 1.0.0+1
+publish_to: 'none'
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# Ikkada error vachindi, ippudu idi fix chesthunnam
+environment:
+  sdk: '>=3.1.0 <4.0.0'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4 # Updated to v4
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^6.2.1
+  cupertino_icons: ^1.0.6
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build Web Preview
-        # --base-href vadadam valla GitHub Pages lo images/links break avvavu
-        run: flutter build web --release --base-href /${{ github.event.repository.name }}/
-
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3 # Updated to v3 (latest for pages)
-        with:
-          path: build/web
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4 # Updated to v4
+flutter:
+  uses-material-design: true
