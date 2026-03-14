@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'home_page.dart';
 
 void main() {
@@ -12,9 +13,12 @@ class WOGApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
+      title: 'W O G',
+      theme: ThemeData(
+        brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
+        // Telugu font set chestunnam ikkada
+        textTheme: GoogleFonts.ramabhadraTextTheme(ThemeData.dark().textTheme),
       ),
       home: const HomePage(),
     );
