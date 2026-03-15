@@ -17,7 +17,6 @@ class WOGApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
-        // Telugu font set chestunnam ikkada
         textTheme: GoogleFonts.ramabhadraTextTheme(ThemeData.dark().textTheme),
       ),
       home: const HomePage(),
