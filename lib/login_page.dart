@@ -30,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AdminDashboard()));
     } else {
       // నార్మల్ యూజర్ అయితే హోమ్ పేజీ కి
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  HomePage()));
     }
   }
 
@@ -92,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())),
+          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  HomePage())),
         ),
       ),
       body: Center(
