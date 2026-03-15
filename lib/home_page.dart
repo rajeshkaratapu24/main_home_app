@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// Bible repo nundi Import chestunnam
-import 'package:wog_bible_section/main.dart' as bible; 
+// FIX: Ikkada main.dart badulu bible_home.dart ni import cheyyali
+import 'package:wog_bible_section/bible_home.dart'; 
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -39,10 +39,10 @@ class _HomePageState extends State<HomePage> {
         unselectedFontSize: 10,
         onTap: (index) {
           if (index == 1) {
-            // Bible Repo lo unna main widget ni call chestunnam
+            // FIX: Direct ga BibleHome() ni call chestunnam
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const bible.BibleHome()),
+              MaterialPageRoute(builder: (context) => const BibleHome()),
             );
           }
         },
@@ -99,8 +99,8 @@ class _HomePageState extends State<HomePage> {
             leading: const Icon(Icons.book),
             title: const Text("Bible"),
             onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const bible.BibleHome()));
+              Navigator.pop(context); // Close drawer
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
             },
           ),
         ],
