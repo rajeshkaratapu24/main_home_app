@@ -17,7 +17,7 @@ class WOGApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
-        textTheme: GoogleFonts.ramabhadraTextTheme(ThemeData.dark().textTheme),
+        textTheme: GoogleFonts.balooTammudu2TextTheme(ThemeData.dark().textTheme),
       ),
       home: const HomePage(),
     );
