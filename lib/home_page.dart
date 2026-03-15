@@ -16,13 +16,33 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    if (index == 1) { // BIBLE
+    if (index == 1) { // BIBLE clicked
       Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
     } else {
       setState(() {
         _selectedIndex = index;
       });
     }
+  }
+
+  // Drawer Item Helper Widget
+  Widget _drawerItem(String title, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 30),
+      child: InkWell(
+        onTap: onTap,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            letterSpacing: 2.5,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -54,114 +74,12 @@ class _HomePageState extends State<HomePage> {
       // --- DYNAMIC SIDE MENU ---
       drawer: Drawer(
         backgroundColor: Colors.black,
-        child: Builder(
-          builder: (context) {
-            final user = FirebaseAuth.instance.currentUser;
-            final isAdmin = user != null && (user.email == "rajeshkaratapu24@gmail.com" || user.phoneNumber == "+919999999999");
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 80),
-                
-                if (user == null) ...[
-                  _drawerItem("L O G I N", () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()));
-                  }),
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 30, bottom: 20),
-                    child: Text(
-                      "Hi, ${user.email?.split('@')[0] ?? 'User'}!",
-                      style: const TextStyle(color: Colors.blueAccent, fontSize: 16),
-                    ),
-                  ),
-                  _drawerItem("P R O F I L E", () {}),
-                  const SizedBox(height: 20),
-                  _drawerItem("B O O K M A R K S", () {}),
-                  const SizedBox(height: 20),
-                  
-                  if (isAdmin) ...[
-                    _drawerItem("A D M I N   P A N E L", () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminDashboard()));
-                    }),
-                    const SizedBox(height: 20),
-                  ],
-                  
-                  _drawerItem("L O G O U T", () async {
-                    await FirebaseAuth.instance.signOut();
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      setState(() {});
-                    }
-                  }),
-                ],
-                
-                const SizedBox(height: 20),
-                _drawerItem("S E T T I N G S", () {}),
-                const SizedBox(height: 20),
-                _drawerItem("A B O U T", () {}),
-                
-                const Spacer(),
-                const Padding(
-                  padding: EdgeInsets.only(left: 30, bottom: 40),
-                  child: Text(
-                    "W  O  G   S  T  U  D  I  O  S",
-                    style: TextStyle(color: Colors.white54, fontSize: 12, letterSpacing: 3),
-                  ),
-                )
-              ],
-            );
-          }
-        ),
-      ),
-
-      // --- THE ORIGINAL BODY ---
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "D A I L Y   V E R S E",
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
-            ),
-            const SizedBox(height: 30),
-            Text(
-              "నేను నీకు తోడైయున్నాను,\nభయపడకుము. నీ దేవుడనైన\nనేను నిన్ను బలపరతును.",
-              style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 22, height: 1.5),
-            ),
-            const SizedBox(height: 10),
-            const Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                "— యెషయా 41:10",
-                style: TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-            ),
-            
-            const SizedBox(height: 40),
-            const Divider(color: Colors.white24, thickness: 1),
-            const SizedBox(height: 40),
-
-            const Text(
-              "N O T I F I C A T I O N",
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
-            ),
-            const SizedBox(height: 25),
-            Text(
-      // --- DYNAMIC SIDE MENU ---
-      drawer: Drawer(
-        backgroundColor: Colors.black,
-        surfaceTintColor: Colors.transparent, // గ్రే కలర్ రాకుండా ఆపుతుంది
+        surfaceTintColor: Colors.transparent,
         child: Builder(
           builder: (context) {
             final user = FirebaseAuth.instance.currentUser;
             final isAdmin = user != null && (user.email == "rajeshkaratapu24@gmail.com" || user.phoneNumber == "+919999999999");
             
-            // ఫోన్ తో లాగిన్ అయితే పేరు కోసం ఎర్రర్ రాకుండా లాజిక్
             String displayName = "User";
             if (user != null) {
               if (user.email != null && user.email!.isNotEmpty) {
@@ -218,7 +136,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 20),
                   _drawerItem("A B O U T", () {}),
                   
-                  const SizedBox(height: 100), // Spacer() బదులు ఇది వాడాలి
+                  const SizedBox(height: 100),
                   
                   const Padding(
                     padding: EdgeInsets.only(left: 30, bottom: 40),
@@ -234,8 +152,62 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
+      // --- THE ORIGINAL BODY ---
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "D A I L Y   V E R S E",
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
+            ),
+            const SizedBox(height: 30),
+            Text(
+              "నేను నీకు తోడైయున్నాను,\nభయపడకుము. నీ దేవుడనైన\nనేను నిన్ను బలపరతును.",
+              style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 22, height: 1.5),
+            ),
+            const SizedBox(height: 10),
+            const Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                "— యెషయా 41:10",
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+            ),
+            
+            const SizedBox(height: 40),
+            const Divider(color: Colors.white24, thickness: 1),
+            const SizedBox(height: 40),
 
-      // --- BOTTOM NAVIGATION BAR ---
+            const Text(
+              "N O T I F I C A T I O N",
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
+            ),
+            const SizedBox(height: 25),
+            Text(
+              "నేటి ధ్యానం",
+              style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "దేవుని వాక్యం నీ పాదములకు దీపము, నీ\nత్రోవకు వెలుగు.",
+              style: GoogleFonts.balooTammudu2(color: Colors.white70, fontSize: 18, height: 1.5),
+            ),
+            const SizedBox(height: 30),
+            
+            GestureDetector(
+              onTap: () {},
+              child: const Text(
+                "EXPLORE NOW  →",
+                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2),
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // --- THE ORIGINAL BOTTOM NAVIGATION BAR ---
       bottomNavigationBar: Theme(
         data: ThemeData(
           splashColor: Colors.transparent,
@@ -269,26 +241,6 @@ class _HomePageState extends State<HomePage> {
               label: "T R A C K",
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // Drawer Item Helper Widget
-  Widget _drawerItem(String title, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 30),
-      child: InkWell(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        child: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            letterSpacing: 2.5,
-          ),
         ),
       ),
     );
