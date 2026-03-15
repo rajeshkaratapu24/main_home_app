@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.2.1
   cupertino_icons: ^1.0.6
+  # XML Parsing kosam idi add cheyyali
+  xml: ^6.5.0 
 
 dev_dependencies:
   flutter_test:
@@ -20,4 +22,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/bible_data.json # Ikkada nee JSON file name pettu
+    - assets/bible.xml  # Ikkada nee file name correct ga undali
