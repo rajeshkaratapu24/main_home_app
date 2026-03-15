@@ -1,96 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'bible/bible_home.dart';
+import 'admin/admin_login.dart'; // Admin login page import
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: const Text("W  O  G", style: TextStyle(letterSpacing: 6, fontWeight: FontWeight.bold)),
+        title: Text("WORLD OF GOD", style: GoogleFonts.philosopher(fontWeight: FontWeight.bold, letterSpacing: 2)),
         centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+        backgroundColor: Colors.black,
       ),
+      // --- Side Menu (Drawer) Start ---
       drawer: Drawer(
         backgroundColor: const Color(0xFF121212),
         child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(child: Center(child: Text("W O G", style: TextStyle(fontSize: 24, letterSpacing: 5)))),
-            ListTile(
-              leading: const Icon(Icons.book),
-              title: const Text("Bible"),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
-              },
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Colors.black),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.auto_awesome, size: 50, color: Colors.blueAccent),
+                  const SizedBox(height: 10),
+                  Text("WOG APP", style: GoogleFonts.philosopher(color: Colors.white, fontSize: 20)),
+                ],
+              ),
             ),
+            _drawerItem(Icons.home, "Home", () => Navigator.pop(context)),
+            _drawerItem(Icons.book, "Bible", () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
+            }),
+            
+            const Divider(color: Colors.white10), // Chinna line separation kosam
+
+            // --- Admin Button ikkada undi ---
+            _drawerItem(Icons.admin_panel_settings, "Admin Portal", () {
+              Navigator.pop(context); // Drawer close chesthundhi
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (context) => const AdminLogin())
+              );
+            }),
           ],
         ),
       ),
-      body: _buildHomeBody(),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "HOME"),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book_outlined), label: "BIBLE"),
-          BottomNavigationBarItem(icon: Icon(Icons.music_note_outlined), label: "SONGS"),
-          BottomNavigationBarItem(icon: Icon(Icons.track_changes_outlined), label: "TRACK"),
-        ],
+      // --- Side Menu End ---
+      
+      body: Center(
+        child: Text("Welcome to World of God", style: TextStyle(color: Colors.white70)),
       ),
     );
   }
 
-  Widget _buildHomeBody() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 50),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text("DAILY VERSE", style: TextStyle(letterSpacing: 4, color: Colors.grey, fontSize: 12)),
-          SizedBox(height: 25),
-          Text(
-            "నేను నీకు తోడైయున్నాను,\nభయపడకుము. నీ దేవుడనైన\nనేను నిన్ను బలపరతును.",
-            style: TextStyle(fontSize: 24, height: 1.6, fontWeight: FontWeight.w500),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text("\n— యెషయా 41:10", style: TextStyle(color: Colors.grey, fontSize: 16)),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 60.0),
-            child: Divider(color: Colors.white24, thickness: 1),
-          ),
-          Text("NOTIFICATION", style: TextStyle(letterSpacing: 4, color: Colors.grey, fontSize: 12)),
-          SizedBox(height: 25),
-          Text("నేటి ధ్యానం", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          SizedBox(height: 12),
-          Text(
-            "దేవుని వాక్యం నీ పాదములకు దీపము, నీ త్రోవకు వెలుగు.",
-            style: TextStyle(fontSize: 18, color: Colors.grey, height: 1.5),
-          ),
-        ],
-      ),
+  // Common Drawer Item Widget
+  Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.blueAccent),
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      onTap: onTap,
     );
   }
 }
