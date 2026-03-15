@@ -16,19 +16,16 @@ class _BibleHomeState extends State<BibleHome> {
   @override
   void initState() {
     super.initState();
-    _loadBibleData();
+    _loadData();
   }
 
-  // Local assets nundi data load chesthunnam
-  Future<void> _loadBibleData() async {
+  Future<void> _loadData() async {
     try {
       final String response = await rootBundle.loadString('assets/bible_data.json');
       final data = await json.decode(response);
-      setState(() {
-        _books = data['books'];
-      });
+      setState(() => _books = data['books'] ?? []);
     } catch (e) {
-      debugPrint("Error loading Bible data: $e");
+      debugPrint("Error loading data: $e");
     }
   }
 
@@ -36,28 +33,15 @@ class _BibleHomeState extends State<BibleHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text("పరిశుద్ధ గ్రంథము", 
-          style: GoogleFonts.balooTammudu2(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("పరిశుద్ధ గ్రంథము"), backgroundColor: Colors.black),
       body: _books.isEmpty
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
+          : ListView.builder(
               itemCount: _books.length,
-              separatorBuilder: (context, index) => const Divider(color: Colors.white10),
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(
-                    _books[index]['name'],
-                    style: GoogleFonts.balooTammudu2(fontSize: 20, color: Colors.white),
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                  onTap: () {
-                    // Navigate to Chapters page
-                  },
+                  title: Text(_books[index]['name'], style: const TextStyle(color: Colors.white)),
+                  onTap: () {},
                 );
               },
             ),
