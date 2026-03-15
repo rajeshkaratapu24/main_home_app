@@ -1,5 +1,5 @@
-name: main_home_app
-description: "WOG Main Home Application"
+name: wog_app
+description: "Word of God - Integrated App"
 version: 1.0.0+1
 publish_to: 'none'
 
@@ -11,12 +11,6 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.2.1
   cupertino_icons: ^1.0.6
-  
-  # External Bible Repository
-  wog_bible_section:
-    git:
-      url: https://github.com/rajeshkaratapu24/wog_bible_section.git
-      ref: main
 
 dev_dependencies:
   flutter_test:
@@ -25,3 +19,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/bible_data.json # Ikkada nee JSON file name pettu
