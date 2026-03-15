@@ -9,10 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  xml: ^6.5.0
   google_fonts: ^6.2.1
-  cupertino_icons: ^1.0.6
-  # XML Parsing kosam idi add cheyyali
-  xml: ^6.5.0 
+  share_plus: ^10.1.0 # Sharing కోసం
+  path_provider: ^2.1.2 # Bookmarks/Offline storage కోసం
 
 dev_dependencies:
   flutter_test:
