@@ -22,4 +22,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/bible.xml  # Ikkada nee file name correct ga undali
+    - assets/bible.xml
