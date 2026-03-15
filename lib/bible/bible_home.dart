@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:xml/xml.dart'; // XML package import
 import 'package:google_fonts/google_fonts.dart';
 
 class BibleHome extends StatefulWidget {
@@ -11,21 +11,32 @@ class BibleHome extends StatefulWidget {
 }
 
 class _BibleHomeState extends State<BibleHome> {
-  List _books = [];
+  List<String> _books = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadBibleXml();
   }
 
-  Future<void> _loadData() async {
+  // XML File load chesi parse chese function
+  Future<void> _loadBibleXml() async {
     try {
-      final String response = await rootBundle.loadString('assets/bible_data.json');
-      final data = await json.decode(response);
-      setState(() => _books = data['books'] ?? []);
+      final String xmlString = await rootBundle.loadString('assets/bible.xml');
+      final document = XmlDocument.parse(xmlString);
+      
+      // XML Structure batti 'book' tags ni vethukuthundi
+      // Example structure: <bible><book name="Genesis">...</book></bible>
+      final booksData = document.findAllElements('book');
+      
+      setState(() {
+        _books = booksData.map((node) => node.getAttribute('name') ?? 'Unknown').toList();
+        _isLoading = false;
+      });
     } catch (e) {
-      debugPrint("Error loading data: $e");
+      debugPrint("Error loading XML: $e");
+      setState(() => _isLoading = false);
     }
   }
 
@@ -33,18 +44,32 @@ class _BibleHomeState extends State<BibleHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(title: const Text("పరిశుద్ధ గ్రంథము"), backgroundColor: Colors.black),
-      body: _books.isEmpty
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Text("పరిశుద్ధ గ్రంథము", style: GoogleFonts.balooTammudu2()),
+        centerTitle: true,
+      ),
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : ListView.builder(
-              itemCount: _books.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(_books[index]['name'], style: const TextStyle(color: Colors.white)),
-                  onTap: () {},
-                );
-              },
-            ),
+          : _books.isEmpty
+              ? const Center(child: Text("Data not found", style: TextStyle(color: Colors.white)))
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _books.length,
+                  separatorBuilder: (context, index) => const Divider(color: Colors.white10),
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(
+                        _books[index],
+                        style: GoogleFonts.balooTammudu2(fontSize: 20, color: Colors.white),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                      onTap: () {
+                        // Chapters logic ikkada add cheddam
+                      },
+                    );
+                  },
+                ),
     );
   }
 }
