@@ -1,4 +1,4 @@
-name: WOG Web Preview
+name: WOG build apk
 on:
   push:
     branches: [ main ]
