@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'album_songs_page.dart'; // మనం నెక్స్ట్ క్రియేట్ చేయబోయే ఫైల్
+import 'admin/album_songs_page.dart'; // మనం నెక్స్ట్ క్రియేట్ చేయబోయే ఫైల్
 
 class SongsPage extends StatelessWidget {
   const SongsPage({super.key});
