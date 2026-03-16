@@ -15,12 +15,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'YOUR_WEB_API_KEY',
-    appId: 'YOUR_WEB_APP_ID',
+    apiKey: 'AIzaSyAYWludiSKAvzaGhAlH9IeOeJaCh-g38eQ',
+    appId: '1:461552979998:web:c70390a7929a1c3edf1e0f',
     messagingSenderId: '...',
-    projectId: '...',
-    authDomain: '...',
-    storageBucket: '...',
+    projectId: 'wog-app-e922b',
+    authDomain: 'wog-app-e922b.firebaseapp.com',
+    storageBucket: 'wog-app-e922b.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
