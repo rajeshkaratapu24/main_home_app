@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-// ఫోల్డర్ స్ట్రక్చర్ ప్రకారం కరెక్ట్ లింక్ ఇస్తున్నాం
-import 'songs/album_songs_page.dart'; 
+import 'album_songs_page.dart'; // ఇప్పుడు ఇది డైరెక్ట్ గా లింక్ అవుతుంది
 
 class SongsPage extends StatelessWidget {
   const SongsPage({super.key});
