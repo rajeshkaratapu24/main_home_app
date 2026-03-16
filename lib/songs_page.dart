@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'full_player_page.dart'; // మనం కొత్తగా క్రియేట్ చేసిన ఫుల్ ప్లేయర్ ఫైల్
+import 'songs/full_player_page.dart'; // మనం కొత్తగా క్రియేట్ చేసిన ఫుల్ ప్లేయర్ ఫైల్
 
 class SongsPage extends StatefulWidget {
   const SongsPage({super.key});
