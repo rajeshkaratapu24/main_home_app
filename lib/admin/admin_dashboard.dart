@@ -1,3 +1,4 @@
+import 'upload_song.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -40,10 +41,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
                 children: [
-                  _adminCard("పాటలు అప్‌లోడ్", Icons.music_note, Colors.blueAccent, () {
-                    // పాటలు అప్‌లోడ్ చేసే పేజీకి వెళ్లే లాజిక్ ఇక్కడ రాద్దాం
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("సాంగ్స్ అప్‌లోడ్ పేజీకి వెళ్తున్నాం...")));
+                  _adminCard("                  _adminCard("పాటలు అప్‌లోడ్", Icons.music_note, Colors.blueAccent, () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const UploadSong()));
                   }),
+
                   _adminCard("ఆడియో సందేశాలు", Icons.mic, Colors.orangeAccent, () {
                     // ఆడియో మెసేజెస్
                   }),
