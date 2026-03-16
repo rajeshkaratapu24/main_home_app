@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'full_player_page.dart'; // ఫుల్ ప్లేయర్ కి లింక్
+import 'full_player_page.dart';
 
 class AlbumSongsPage extends StatefulWidget {
   final String albumId;
@@ -27,7 +27,6 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
   @override
   void initState() {
     super.initState();
-    // ఈ ఆల్బమ్ ఐడీ తో ఉన్న పాటలు మాత్రమే ఫిల్టర్ చేస్తున్నాం
     _songsStream = FirebaseFirestore.instance.collection('songs').where('albumId', isEqualTo: widget.albumId).snapshots();
     
     _audioPlayer.onDurationChanged.listen((newDuration) {
@@ -74,58 +73,109 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text(widget.albumName, style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 22)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
+      backgroundColor: const Color(0xFF0A0A0A), // డీప్ బ్లాక్ థీమ్
       body: StreamBuilder<QuerySnapshot>(
         stream: _songsStream, 
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("ఈ ఆల్బమ్ లో ఇంకా పాటలు లేవు", style: GoogleFonts.balooTammudu2(color: Colors.white54, fontSize: 18)));
-          }
-
-          final songsList = snapshot.data!.docs;
+          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.greenAccent));
+          
+          final songsList = snapshot.hasData ? snapshot.data!.docs : [];
 
           return Stack(
             children: [
-              ListView.builder(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 120),
-                itemCount: songsList.length,
-                itemBuilder: (context, index) {
-                  var song = songsList[index];
-                  var data = song.data() as Map<String, dynamic>;
-                  var title = data['title'] ?? 'Unknown';
-                  var lyricist = data['lyricist'] ?? '';
-                  var songUrl = data['songUrl'];
-                  var songCover = data['coverUrl'] ?? '';
-                  
-                  bool isThisSongPlaying = _currentlyPlayingId == song.id;
-
-                  return Card(
-                    color: isThisSongPlaying ? const Color(0xFF2A2A2A) : const Color(0xFF1A1A1A),
-                    margin: const EdgeInsets.only(bottom: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: songCover.isNotEmpty 
-                            ? Image.network(songCover, width: 50, height: 50, fit: BoxFit.cover)
-                            : Container(width: 50, height: 50, color: Colors.blueAccent, child: const Icon(Icons.music_note, color: Colors.white)),
+              CustomScrollView(
+                slivers: [
+                  // --- PREMIUM SPOTIFY STYLE HEADER ---
+                  SliverAppBar(
+                    expandedHeight: 280.0,
+                    pinned: true,
+                    backgroundColor: const Color(0xFF0A0A0A),
+                    elevation: 0,
+                    iconTheme: const IconThemeData(color: Colors.white),
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: Text(
+                        widget.albumName, 
+                        style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)
                       ),
-                      title: Text(title, style: GoogleFonts.balooTammudu2(color: isThisSongPlaying ? Colors.greenAccent : Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      subtitle: Text(lyricist, style: GoogleFonts.balooTammudu2(color: Colors.white70, fontSize: 14)),
-                      onTap: () => _playSong(song.id, songUrl, title),
+                      centerTitle: true,
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          widget.coverUrl.isNotEmpty
+                              ? Image.network(
+                                  widget.coverUrl, 
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF1A1A1A), child: const Icon(Icons.album, size: 80, color: Colors.white24)),
+                                )
+                              : Container(color: const Color(0xFF1A1A1A), child: const Icon(Icons.album, size: 80, color: Colors.white24)),
+                          // గ్రేడియంట్ షాడో (టెక్స్ట్ కోసం)
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Colors.transparent, const Color(0xFF0A0A0A).withOpacity(0.8), const Color(0xFF0A0A0A)],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-                },
+                  ),
+
+                  // --- SONGS LIST ---
+                  if (songsList.isEmpty)
+                    SliverFillRemaining(
+                      child: Center(child: Text("ఈ ఆల్బమ్ లో ఇంకా పాటలు లేవు", style: GoogleFonts.balooTammudu2(color: Colors.white54, fontSize: 18))),
+                    )
+                  else
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          var song = songsList[index];
+                          var data = song.data() as Map<String, dynamic>;
+                          var title = data['title'] ?? 'Unknown';
+                          var lyricist = data['lyricist'] ?? '';
+                          var songUrl = data['songUrl'];
+                          var songCover = data['coverUrl'] ?? '';
+                          
+                          bool isThisSongPlaying = _currentlyPlayingId == song.id;
+
+                          // చివరి పాట కింద మినీ ప్లేయర్ కోసం గ్యాప్
+                          double bottomPadding = (index == songsList.length - 1) ? 120.0 : 0.0;
+
+                          return Padding(
+                            padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: bottomPadding),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              tileColor: isThisSongPlaying ? Colors.white.withOpacity(0.05) : Colors.transparent, // ప్లే అవుతున్నప్పుడు హైలైట్
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: songCover.isNotEmpty 
+                                    ? Image.network(
+                                        songCover, width: 50, height: 50, fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Container(width: 50, height: 50, color: const Color(0xFF222222), child: const Icon(Icons.music_note, color: Colors.white54)),
+                                      )
+                                    : Container(width: 50, height: 50, color: const Color(0xFF222222), child: const Icon(Icons.music_note, color: Colors.white54)),
+                              ),
+                              title: Text(
+                                title, 
+                                style: GoogleFonts.balooTammudu2(color: isThisSongPlaying ? Colors.greenAccent : Colors.white, fontSize: 18, fontWeight: isThisSongPlaying ? FontWeight.bold : FontWeight.normal)
+                              ),
+                              subtitle: Text(lyricist, style: GoogleFonts.balooTammudu2(color: Colors.white54, fontSize: 13)),
+                              trailing: isThisSongPlaying ? const Icon(Icons.equalizer, color: Colors.greenAccent) : const Icon(Icons.more_vert, color: Colors.white24),
+                              onTap: () => _playSong(song.id, songUrl, title),
+                            ),
+                          );
+                        },
+                        childCount: songsList.length,
+                      ),
+                    ),
+                ],
               ),
               
+              // --- MINI PLAYER (FLOATING DESIGN) ---
               if (_currentlyPlayingId != null)
                 Align(
                   alignment: Alignment.bottomCenter,
@@ -140,10 +190,13 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
                       );
                     },
                     child: Container(
-                      margin: const EdgeInsets.all(10), padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      margin: const EdgeInsets.only(left: 15, right: 15, bottom: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF222222), borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: Colors.white10), boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, spreadRadius: 2)],
+                        color: const Color(0xFF1E1E1E), 
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white10), 
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.8), blurRadius: 15, spreadRadius: 5)],
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -154,20 +207,6 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
                               final position = posSnapshot.data ?? Duration.zero;
                               return Column(
                                 children: [
-                                  SizedBox(
-                                    height: 15,
-                                    child: SliderTheme(
-                                      data: SliderTheme.of(context).copyWith(
-                                        trackHeight: 2, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                                        activeTrackColor: Colors.greenAccent, inactiveTrackColor: Colors.white24, thumbColor: Colors.greenAccent,
-                                      ),
-                                      child: Slider(
-                                        min: 0, max: _duration.inSeconds.toDouble() > 0 ? _duration.inSeconds.toDouble() : 1,
-                                        value: position.inSeconds.toDouble().clamp(0, _duration.inSeconds.toDouble()),
-                                        onChanged: (value) async => await _audioPlayer.seek(Duration(seconds: value.toInt())),
-                                      ),
-                                    ),
-                                  ),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -180,13 +219,27 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
                                         ),
                                       ),
                                       IconButton(
-                                        icon: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill, size: 35, color: Colors.greenAccent),
+                                        icon: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill, size: 40, color: Colors.greenAccent),
                                         onPressed: () {
                                           _isPlaying ? _audioPlayer.pause() : _audioPlayer.resume();
                                           setState(() => _isPlaying = !_isPlaying);
                                         },
                                       ),
                                     ],
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                    child: SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        trackHeight: 2, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
+                                        activeTrackColor: Colors.greenAccent, inactiveTrackColor: Colors.white24, thumbColor: Colors.greenAccent,
+                                      ),
+                                      child: Slider(
+                                        min: 0, max: _duration.inSeconds.toDouble() > 0 ? _duration.inSeconds.toDouble() : 1,
+                                        value: position.inSeconds.toDouble().clamp(0, _duration.inSeconds.toDouble()),
+                                        onChanged: (value) async => await _audioPlayer.seek(Duration(seconds: value.toInt())),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               );
