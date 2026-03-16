@@ -1,6 +1,6 @@
-import 'upload_song.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'upload_song.dart'; // మనం కొత్తగా క్రియేట్ చేసిన ఫైల్ ఇక్కడ ఇంపోర్ట్ చేశాం
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -41,10 +41,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
                 children: [
-                  _adminCard("                  _adminCard("పాటలు అప్‌లోడ్", Icons.music_note, Colors.blueAccent, () {
+                  _adminCard("పాటలు అప్‌లోడ్", Icons.music_note, Colors.blueAccent, () {
+                    // పాటల అప్‌లోడ్ పేజీకి వెళ్లే లింక్
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const UploadSong()));
                   }),
-
                   _adminCard("ఆడియో సందేశాలు", Icons.mic, Colors.orangeAccent, () {
                     // ఆడియో మెసేజెస్
                   }),
