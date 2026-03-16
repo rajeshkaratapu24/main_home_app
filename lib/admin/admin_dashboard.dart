@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'upload_song.dart'; // మనం కొత్తగా క్రియేట్ చేసిన ఫైల్ ఇక్కడ ఇంపోర్ట్ చేశాం
+import 'admin_albums.dart'; // కొత్తగా క్రియేట్ చేసిన ఆల్బమ్స్ ఫైల్ ని ఇంపోర్ట్ చేశాం
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -41,12 +41,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
                 children: [
-                  _adminCard("పాటలు అప్‌లోడ్", Icons.music_note, Colors.blueAccent, () {
-                    // పాటల అప్‌లోడ్ పేజీకి వెళ్లే లింక్
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const UploadSong()));
+                  // --- ఆల్బమ్స్ అండ్ సాంగ్స్ బటన్ ---
+                  _adminCard("ఆల్బమ్స్ & పాటలు", Icons.album, Colors.blueAccent, () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminAlbums()));
                   }),
+                  
+                  // --- మిగతా బటన్స్ ---
                   _adminCard("ఆడియో సందేశాలు", Icons.mic, Colors.orangeAccent, () {
-                    // ఆడియో మెసేజెస్
+                    // ఆడియో మెసేజెస్ కోసం ఫ్యూచర్ లో రాద్దాం
                   }),
                   _adminCard("నేటి ధ్యానం", Icons.menu_book, Colors.greenAccent, () {
                     // డైలీ వాక్యం అప్‌డేట్
@@ -63,7 +65,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // డార్క్ థీమ్ అడ్మిన్ కార్డ్ డిజైన్
+  // డార్క్ థీమ్ అడ్మిన్ కార్డ్ డిజైన్ (బటన్స్ కోసం)
   Widget _adminCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
