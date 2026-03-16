@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'bible/bible_home.dart';
 import 'login_page.dart';
 import 'admin/admin_dashboard.dart';
+import 'songs/songs_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,15 +16,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  void _onItemTapped(int index) {
+    void _onItemTapped(int index) {
     if (index == 1) { // BIBLE clicked
       Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
+    } else if (index == 2) { // SONGS clicked
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const SongsPage()));
     } else {
       setState(() {
         _selectedIndex = index;
       });
     }
   }
+
 
   // Drawer Item Helper Widget
   Widget _drawerItem(String title, VoidCallback onTap) {
