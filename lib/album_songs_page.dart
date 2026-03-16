@@ -73,19 +73,19 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A), // డీప్ బ్లాక్ థీమ్
+      backgroundColor: const Color(0xFF0A0A0A), 
       body: StreamBuilder<QuerySnapshot>(
         stream: _songsStream, 
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.greenAccent));
           
-          final songsList = snapshot.hasData ? snapshot.data!.docs : [];
+          // ఇక్కడే మనం బగ్ ఫిక్స్ చేశాం (<DocumentSnapshot> అని యాడ్ చేశాం)
+          final List<DocumentSnapshot> songsList = snapshot.hasData ? snapshot.data!.docs : <DocumentSnapshot>[];
 
           return Stack(
             children: [
               CustomScrollView(
                 slivers: [
-                  // --- PREMIUM SPOTIFY STYLE HEADER ---
                   SliverAppBar(
                     expandedHeight: 280.0,
                     pinned: true,
@@ -108,7 +108,6 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
                                   errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF1A1A1A), child: const Icon(Icons.album, size: 80, color: Colors.white24)),
                                 )
                               : Container(color: const Color(0xFF1A1A1A), child: const Icon(Icons.album, size: 80, color: Colors.white24)),
-                          // గ్రేడియంట్ షాడో (టెక్స్ట్ కోసం)
                           Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -123,7 +122,6 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
                     ),
                   ),
 
-                  // --- SONGS LIST ---
                   if (songsList.isEmpty)
                     SliverFillRemaining(
                       child: Center(child: Text("ఈ ఆల్బమ్ లో ఇంకా పాటలు లేవు", style: GoogleFonts.balooTammudu2(color: Colors.white54, fontSize: 18))),
@@ -141,7 +139,6 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
                           
                           bool isThisSongPlaying = _currentlyPlayingId == song.id;
 
-                          // చివరి పాట కింద మినీ ప్లేయర్ కోసం గ్యాప్
                           double bottomPadding = (index == songsList.length - 1) ? 120.0 : 0.0;
 
                           return Padding(
@@ -149,7 +146,7 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
                             child: ListTile(
                               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              tileColor: isThisSongPlaying ? Colors.white.withOpacity(0.05) : Colors.transparent, // ప్లే అవుతున్నప్పుడు హైలైట్
+                              tileColor: isThisSongPlaying ? Colors.white.withOpacity(0.05) : Colors.transparent, 
                               leading: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: songCover.isNotEmpty 
@@ -175,7 +172,6 @@ class _AlbumSongsPageState extends State<AlbumSongsPage> {
                 ],
               ),
               
-              // --- MINI PLAYER (FLOATING DESIGN) ---
               if (_currentlyPlayingId != null)
                 Align(
                   alignment: Alignment.bottomCenter,
