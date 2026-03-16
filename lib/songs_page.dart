@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'full_player_page.dart'; // మనం కొత్తగా క్రియేట్ చేసిన ఫుల్ ప్లేయర్ ఫైల్
 
 class SongsPage extends StatefulWidget {
   const SongsPage({super.key});
@@ -12,7 +13,7 @@ class SongsPage extends StatefulWidget {
 
 class _SongsPageState extends State<SongsPage> {
   final AudioPlayer _audioPlayer = AudioPlayer();
-  late Stream<QuerySnapshot> _songsStream; // ఫిక్స్ 1: స్ట్రీమ్ ని ఫ్రీజ్ చేయడం
+  late Stream<QuerySnapshot> _songsStream; 
   
   // Player States
   String? _currentlyPlayingId;
@@ -91,24 +92,26 @@ class _SongsPageState extends State<SongsPage> {
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
-      body: Stack(
-        children: [
-          // ఫిక్స్ 1: ఫ్రీజ్ చేసిన స్ట్రీమ్ ని వాడుతున్నాం
-          StreamBuilder<QuerySnapshot>(
-            stream: _songsStream, 
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
-              }
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Center(child: Text("ప్రస్తుతానికి పాటలు లేవు", style: GoogleFonts.balooTammudu2(color: Colors.white54, fontSize: 18)));
-              }
+      // StreamBuilder ని బయట పెడుతున్నాం, అప్పుడే మినీ ప్లేయర్ కి లిస్ట్ డేటా అందుతుంది
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _songsStream, 
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text("ప్రస్తుతానికి పాటలు లేవు", style: GoogleFonts.balooTammudu2(color: Colors.white54, fontSize: 18)));
+          }
 
-              return ListView.builder(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 120), 
-                itemCount: snapshot.data!.docs.length,
+          final songsList = snapshot.data!.docs; // పాటల లిస్ట్
+
+          return Stack(
+            children: [
+              ListView.builder(
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 120), // కింద ప్లేయర్ కోసం గ్యాప్
+                itemCount: songsList.length,
                 itemBuilder: (context, index) {
-                  var song = snapshot.data!.docs[index];
+                  var song = songsList[index];
                   var songId = song.id;
                   var title = song['title'] ?? 'Unknown';
                   var lyricist = song['lyricist'] ?? '';
@@ -134,92 +137,108 @@ class _SongsPageState extends State<SongsPage> {
                     ),
                   );
                 },
-              );
-            },
-          ),
-          
-          if (_currentlyPlayingId != null)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                margin: const EdgeInsets.all(10),
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF222222),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.white10),
-                  boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, spreadRadius: 2)],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // ఫిక్స్ 2: స్లైడర్ (ప్రోగ్రెస్) ని సపరేట్ StreamBuilder లో పెట్టాం
-                    // దీనివల్ల బ్యాక్ గ్రౌండ్ లో లిస్ట్ రీఫ్రెష్ అవ్వదు, కేవలం స్లైడర్ మాత్రమే స్మూత్ గా వెళ్తుంది!
-                    StreamBuilder<Duration>(
-                      stream: _audioPlayer.onPositionChanged,
-                      builder: (context, snapshot) {
-                        final position = snapshot.data ?? Duration.zero;
-                        return Column(
-                          children: [
-                            SizedBox(
-                              height: 20,
-                              child: SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                  trackHeight: 3,
-                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-                                  activeTrackColor: Colors.greenAccent,
-                                  inactiveTrackColor: Colors.white24,
-                                  thumbColor: Colors.greenAccent,
-                                ),
-                                child: Slider(
-                                  min: 0,
-                                  max: _duration.inSeconds.toDouble() > 0 ? _duration.inSeconds.toDouble() : 1,
-                                  value: position.inSeconds.toDouble().clamp(0, _duration.inSeconds.toDouble()),
-                                  onChanged: (value) async {
-                                    await _audioPlayer.seek(Duration(seconds: value.toInt()));
-                                  },
-                                ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              
+              // --- SPOTIFY MINI PLAYER ---
+              if (_currentlyPlayingId != null)
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: GestureDetector(
+                    onTap: () {
+                      // మినీ ప్లేయర్ మీద క్లిక్ చేస్తే ఫుల్ స్క్రీన్ ప్లేయర్ కి తీసుకెళ్లే లాజిక్
+                      int currentIndex = songsList.indexWhere((doc) => doc.id == _currentlyPlayingId);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FullPlayerPage(
+                            audioPlayer: _audioPlayer,
+                            songsList: songsList,
+                            initialIndex: currentIndex,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF222222),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.white10),
+                        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, spreadRadius: 2)],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          StreamBuilder<Duration>(
+                            stream: _audioPlayer.onPositionChanged,
+                            builder: (context, posSnapshot) {
+                              final position = posSnapshot.data ?? Duration.zero;
+                              return Column(
+                                children: [
+                                  // స్లైడర్ (ప్రోగ్రెస్ బార్)
+                                  SizedBox(
+                                    height: 20,
+                                    child: SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        trackHeight: 3,
+                                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                                        activeTrackColor: Colors.greenAccent,
+                                        inactiveTrackColor: Colors.white24,
+                                        thumbColor: Colors.greenAccent,
+                                      ),
+                                      child: Slider(
+                                        min: 0,
+                                        max: _duration.inSeconds.toDouble() > 0 ? _duration.inSeconds.toDouble() : 1,
+                                        value: position.inSeconds.toDouble().clamp(0, _duration.inSeconds.toDouble()),
+                                        onChanged: (value) async {
+                                          await _audioPlayer.seek(Duration(seconds: value.toInt()));
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(_currentTitle, 
-                                        maxLines: 1, overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                      Text("${_formatTime(position)} / ${_formatTime(_duration)}", 
-                                        style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(_currentTitle, 
+                                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                            Text("${_formatTime(position)} / ${_formatTime(_duration)}", 
+                                              style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill, size: 40, color: Colors.greenAccent),
+                                        onPressed: () {
+                                          if (_isPlaying) {
+                                            _audioPlayer.pause();
+                                            setState(() => _isPlaying = false);
+                                          } else {
+                                            _audioPlayer.resume();
+                                            setState(() => _isPlaying = true);
+                                          }
+                                        },
+                                      ),
                                     ],
                                   ),
-                                ),
-                                IconButton(
-                                  icon: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill, size: 40, color: Colors.greenAccent),
-                                  onPressed: () {
-                                    if (_isPlaying) {
-                                      _audioPlayer.pause();
-                                      setState(() => _isPlaying = false);
-                                    } else {
-                                      _audioPlayer.resume();
-                                      setState(() => _isPlaying = true);
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      }
+                                ],
+                              );
+                            }
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
