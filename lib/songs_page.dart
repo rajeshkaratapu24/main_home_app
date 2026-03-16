@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'album_songs_page.dart'; // ఇప్పుడు ఇది డైరెక్ట్ గా లింక్ అవుతుంది
+
+// నీ ఫోల్డర్ స్ట్రక్చర్ ప్రకారం కరెక్ట్ పాత్ ఇది:
+import 'songs/album_songs_page.dart'; 
 
 class SongsPage extends StatelessWidget {
   const SongsPage({super.key});
@@ -11,26 +13,40 @@ class SongsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("ఆల్బమ్స్", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 24, letterSpacing: 2)),
+        title: Text(
+          "ఆల్బమ్స్", 
+          style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 24, letterSpacing: 2)
+        ),
         backgroundColor: Colors.black,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('albums').orderBy('timestamp', descending: true).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('albums')
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("ప్రస్తుతానికి ఆల్బమ్స్ లేవు", style: GoogleFonts.balooTammudu2(color: Colors.white54, fontSize: 18)));
+            return Center(
+              child: Text(
+                "ప్రస్తుతానికి ఆల్బమ్స్ లేవు", 
+                style: GoogleFonts.balooTammudu2(color: Colors.white54, fontSize: 18)
+              )
+            );
           }
 
           return GridView.builder(
             padding: const EdgeInsets.all(15),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, crossAxisSpacing: 15, mainAxisSpacing: 15, childAspectRatio: 0.85
+              crossAxisCount: 2, 
+              crossAxisSpacing: 15, 
+              mainAxisSpacing: 15, 
+              childAspectRatio: 0.85
             ),
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
@@ -39,25 +55,34 @@ class SongsPage extends StatelessWidget {
               
               return GestureDetector(
                 onTap: () {
-                  // ఆల్బమ్ మీద క్లిక్ చేస్తే దాని పాటల పేజీకి వెళ్తాం
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => AlbumSongsPage(
-                      albumId: album.id, 
-                      albumName: album['name'],
-                      coverUrl: cover,
+                  // ఆల్బమ్ మీద క్లిక్ చేస్తే లోపల ఉన్న సాంగ్స్ పేజీకి వెళ్తాం
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(
+                      builder: (context) => AlbumSongsPage(
+                        albumId: album.id, 
+                        albumName: album['name'],
+                        coverUrl: cover,
+                      )
                     )
-                  ));
+                  );
                 },
                 child: Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFF1A1A1A),
                     borderRadius: BorderRadius.circular(15),
-                    image: cover.isNotEmpty ? DecorationImage(image: NetworkImage(cover), fit: BoxFit.cover, opacity: 0.6) : null,
+                    image: cover.isNotEmpty 
+                        ? DecorationImage(image: NetworkImage(cover), fit: BoxFit.cover, opacity: 0.6) 
+                        : null,
                   ),
                   child: Center(
                     child: Text(
                       album['name'], 
-                      style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold), 
+                      style: GoogleFonts.balooTammudu2(
+                        color: Colors.white, 
+                        fontSize: 20, 
+                        fontWeight: FontWeight.bold
+                      ), 
                       textAlign: TextAlign.center
                     )
                   ),
