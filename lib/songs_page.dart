@@ -12,6 +12,7 @@ class SongsPage extends StatefulWidget {
 
 class _SongsPageState extends State<SongsPage> {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  late Stream<QuerySnapshot> _songsStream; // ఫిక్స్ 1: స్ట్రీమ్ ని ఫ్రీజ్ చేయడం
   
   // Player States
   String? _currentlyPlayingId;
@@ -20,28 +21,24 @@ class _SongsPageState extends State<SongsPage> {
   bool _isPlaying = false;
   
   Duration _duration = Duration.zero;
-  Duration _position = Duration.zero;
 
   @override
   void initState() {
     super.initState();
     
-    // పాట మొత్తం నిడివి (Total Duration) వినడానికి
+    // డేటాబేస్ స్ట్రీమ్ ని ఒక్కసారే కాల్ చేసి దాచుకుంటున్నాం (బ్లింక్ అవ్వకుండా)
+    _songsStream = FirebaseFirestore.instance.collection('songs').orderBy('timestamp', descending: true).snapshots();
+    
+    // పాట మొత్తం నిడివి కోసం
     _audioPlayer.onDurationChanged.listen((newDuration) {
       if (mounted) setState(() => _duration = newDuration);
     });
 
-    // పాట ఎంత సేపు ప్లే అయిందో (Current Position) వినడానికి
-    _audioPlayer.onPositionChanged.listen((newPosition) {
-      if (mounted) setState(() => _position = newPosition);
-    });
-
-    // పాట అయిపోగానే ఏం జరగాలి
+    // పాట అయిపోగానే ఆగిపోవడానికి
     _audioPlayer.onPlayerComplete.listen((event) {
       if (mounted) {
         setState(() {
           _isPlaying = false;
-          _position = Duration.zero;
         });
       }
     });
@@ -69,14 +66,13 @@ class _SongsPageState extends State<SongsPage> {
         _currentlyPlayingId = songId;
         _currentTitle = title;
         _currentLyricist = lyricist;
-        _position = Duration.zero;
+        _isPlaying = true;
       });
       await _audioPlayer.play(UrlSource(url));
-      setState(() => _isPlaying = true);
     }
   }
 
-  // టైమ్ ఫార్మాట్ కోసం (ఉదా: 03:45)
+  // టైమ్ ఫార్మాట్ (ఉదా: 03:45)
   String _formatTime(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
@@ -95,12 +91,12 @@ class _SongsPageState extends State<SongsPage> {
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
-      // Stack వాడుతున్నాం ఎందుకంటే లిస్ట్ పైన మినీ ప్లేయర్ తేలాలి (Spotify లాగా)
       body: Stack(
         children: [
-          StreamBuilder(
-            stream: FirebaseFirestore.instance.collection('songs').orderBy('timestamp', descending: true).snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          // ఫిక్స్ 1: ఫ్రీజ్ చేసిన స్ట్రీమ్ ని వాడుతున్నాం
+          StreamBuilder<QuerySnapshot>(
+            stream: _songsStream, 
+            builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
               }
@@ -109,7 +105,7 @@ class _SongsPageState extends State<SongsPage> {
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 100), // కింద ప్లేయర్ కోసం గ్యాప్
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 120), 
                 itemCount: snapshot.data!.docs.length,
                 itemBuilder: (context, index) {
                   var song = snapshot.data!.docs[index];
@@ -142,7 +138,6 @@ class _SongsPageState extends State<SongsPage> {
             },
           ),
           
-          // --- SPOTIFY MINI PLAYER ---
           if (_currentlyPlayingId != null)
             Align(
               alignment: Alignment.bottomCenter,
@@ -158,61 +153,67 @@ class _SongsPageState extends State<SongsPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Slider (Progress Bar)
-                    SizedBox(
-                      height: 20,
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 3,
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-                          activeTrackColor: Colors.greenAccent,
-                          inactiveTrackColor: Colors.white24,
-                          thumbColor: Colors.greenAccent,
-                        ),
-                        child: Slider(
-                          min: 0,
-                          max: _duration.inSeconds.toDouble() > 0 ? _duration.inSeconds.toDouble() : 1,
-                          value: _position.inSeconds.toDouble().clamp(0, _duration.inSeconds.toDouble()),
-                          onChanged: (value) async {
-                            final position = Duration(seconds: value.toInt());
-                            await _audioPlayer.seek(position);
-                          },
-                        ),
-                      ),
-                    ),
-                    
-                    // Song Info & Controls
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Song Details
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(_currentTitle, 
-                                maxLines: 1, overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                              Text("${_formatTime(_position)} / ${_formatTime(_duration)}", 
-                                style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                        
-                        // Play/Pause Button
-                        IconButton(
-                          icon: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill, size: 40, color: Colors.greenAccent),
-                          onPressed: () {
-                            if (_isPlaying) {
-                              _audioPlayer.pause();
-                            } else {
-                              _audioPlayer.resume();
-                            }
-                            setState(() => _isPlaying = !_isPlaying);
-                          },
-                        ),
-                      ],
+                    // ఫిక్స్ 2: స్లైడర్ (ప్రోగ్రెస్) ని సపరేట్ StreamBuilder లో పెట్టాం
+                    // దీనివల్ల బ్యాక్ గ్రౌండ్ లో లిస్ట్ రీఫ్రెష్ అవ్వదు, కేవలం స్లైడర్ మాత్రమే స్మూత్ గా వెళ్తుంది!
+                    StreamBuilder<Duration>(
+                      stream: _audioPlayer.onPositionChanged,
+                      builder: (context, snapshot) {
+                        final position = snapshot.data ?? Duration.zero;
+                        return Column(
+                          children: [
+                            SizedBox(
+                              height: 20,
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 3,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                                  activeTrackColor: Colors.greenAccent,
+                                  inactiveTrackColor: Colors.white24,
+                                  thumbColor: Colors.greenAccent,
+                                ),
+                                child: Slider(
+                                  min: 0,
+                                  max: _duration.inSeconds.toDouble() > 0 ? _duration.inSeconds.toDouble() : 1,
+                                  value: position.inSeconds.toDouble().clamp(0, _duration.inSeconds.toDouble()),
+                                  onChanged: (value) async {
+                                    await _audioPlayer.seek(Duration(seconds: value.toInt()));
+                                  },
+                                ),
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(_currentTitle, 
+                                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                      Text("${_formatTime(position)} / ${_formatTime(_duration)}", 
+                                        style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(_isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill, size: 40, color: Colors.greenAccent),
+                                  onPressed: () {
+                                    if (_isPlaying) {
+                                      _audioPlayer.pause();
+                                      setState(() => _isPlaying = false);
+                                    } else {
+                                      _audioPlayer.resume();
+                                      setState(() => _isPlaying = true);
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      }
                     ),
                   ],
                 ),
