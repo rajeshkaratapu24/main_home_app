@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'bible/bible_home.dart';
 import 'login_page.dart';
 import 'admin/admin_dashboard.dart';
-import 'songs/songs_page.dart';
+import '/songs_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
