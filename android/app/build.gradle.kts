@@ -30,13 +30,21 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
+        signingConfigs {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            storeFile = file("wog-key.jks")
+            storePassword = "wog12345"
+            keyAlias = "wog"
+            keyPassword = "wog12345"
         }
     }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.release
+        }
+    }
+
 }
 
 flutter {
