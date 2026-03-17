@@ -7,6 +7,8 @@ import 'login_page.dart';
 import 'admin/admin_dashboard.dart';
 import '/songs_page.dart';
 import 'project_h/project_h_splash.dart';
+import 'main.dart'; // థీమ్ కంట్రోల్ చేయడానికి దీన్ని కొత్తగా యాడ్ చేశాం
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -17,12 +19,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
- void _onItemTapped(int index) {
+  void _onItemTapped(int index) {
     if (index == 1) { // BIBLE clicked
       Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
     } else if (index == 2) { // SONGS clicked
       Navigator.push(context, MaterialPageRoute(builder: (context) => const SongsPage()));
-    } else if (index == 3) { // PROJECT H clicked (కొత్తది)
+    } else if (index == 3) { // PROJECT H clicked 
       Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectHSplash()));
     } else {
       setState(() {
@@ -33,12 +35,18 @@ class _HomePageState extends State<HomePage> {
 
   // యాప్ క్లోజ్ చేసే ముందు అడిగే డైలాగ్ బాక్స్
   Future<bool> _showExitConfirmation() async {
+    // డైలాగ్ బాక్స్ కూడా థీమ్ కి తగ్గట్టు మారాలి కదా
+    bool isLight = Theme.of(context).brightness == Brightness.light;
+    Color cardColor = isLight ? Colors.white : const Color(0xFF1A1A1A);
+    Color textColor = isLight ? Colors.black : Colors.white;
+    Color subTextColor = isLight ? Colors.black54 : Colors.white70;
+
     return await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text("Exit App", style: TextStyle(color: Colors.white)),
-        content: const Text("Do you want to close WORLD OF GOD?", style: TextStyle(color: Colors.white70)),
+        backgroundColor: cardColor,
+        title: Text("Exit App", style: TextStyle(color: textColor)),
+        content: Text("Do you want to close WORLD OF GOD?", style: TextStyle(color: subTextColor)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -53,8 +61,8 @@ class _HomePageState extends State<HomePage> {
     ) ?? false;
   }
 
-  // Drawer Item Helper Widget
-  Widget _drawerItem(String title, VoidCallback onTap) {
+  // Drawer Item Helper Widget (కలర్ డైనమిక్ గా మారేలా చేశాం)
+  Widget _drawerItem(String title, VoidCallback onTap, Color tColor) {
     return Padding(
       padding: const EdgeInsets.only(left: 30),
       child: InkWell(
@@ -63,8 +71,8 @@ class _HomePageState extends State<HomePage> {
         highlightColor: Colors.transparent,
         child: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: tColor,
             fontSize: 16,
             letterSpacing: 2.5,
           ),
@@ -75,6 +83,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // ఇక్కడే అసలు మ్యాజిక్ ఉంది: థీమ్ లైట్ ఆ? డార్క్ ఆ? చెక్ చేస్తుంది
+    bool isLight = Theme.of(context).brightness == Brightness.light;
+    
+    // థీమ్ ని బట్టి ఆటోమేటిక్ గా రంగులు సెట్ అవుతాయి
+    Color bgColor = isLight ? Colors.white : Colors.black;
+    Color textColor = isLight ? Colors.black : Colors.white;
+    Color subTextColor = isLight ? Colors.black54 : Colors.white70;
+
     return PopScope(
       canPop: false, 
       onPopInvokedWithResult: (didPop, result) async {
@@ -91,37 +107,41 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.black, // మళ్ళీ బ్లాక్ కలర్ యాడ్ చేశాం
+        backgroundColor: bgColor, // డైనమిక్ బ్యాక్‌గ్రౌండ్
         appBar: AppBar(
-          backgroundColor: Colors.black, // ఇక్కడ కూడా బ్లాక్
+          backgroundColor: bgColor, 
           elevation: 0,
           leading: Builder(
             builder: (context) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white),
+              icon: Icon(Icons.menu, color: textColor),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),
-          title: const Text(
+          title: Text(
             "W    O    G",
-            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: 4),
+            style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: 4),
           ),
           centerTitle: true,
           actions: [
+            // ఇక్కడే నీ సూర్యుడు/చంద్రుడు బటన్ పెట్టాం
             IconButton(
-              icon: const Icon(Icons.wb_sunny_outlined, color: Colors.white),
-              onPressed: () {},
+              icon: Icon(isLight ? Icons.nights_stay : Icons.wb_sunny_outlined, color: textColor),
+              onPressed: () {
+                // నొక్కగానే లైట్/డార్క్ కి మారుతుంది (main.dart లోని themeNotifier కి కనెక్ట్ చేసాం)
+                themeNotifier.value = isLight ? ThemeMode.dark : ThemeMode.light;
+              },
             ),
           ],
         ),
-        
+
         drawer: Drawer(
-          backgroundColor: Colors.black, // డ్రాయర్ కూడా బ్లాక్
+          backgroundColor: bgColor, 
           surfaceTintColor: Colors.transparent,
           child: Builder(
             builder: (context) {
               final user = FirebaseAuth.instance.currentUser;
               final isAdmin = user != null && (user.email == "rajeshkaratapu24@gmail.com" || user.phoneNumber == "+919999999999");
-              
+
               String displayName = "User";
               if (user != null) {
                 if (user.email != null && user.email!.isNotEmpty) {
@@ -132,7 +152,7 @@ class _HomePageState extends State<HomePage> {
               }
 
               return Container(
-                color: Colors.black, // లోపల కంటైనర్ కూడా బ్లాక్
+                color: bgColor, 
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
@@ -141,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                       _drawerItem("L O G I N", () {
                         Navigator.pop(context);
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()));
-                      }),
+                      }, textColor), // కలర్ కూడా పంపిస్తున్నాం
                     ] else ...[
                       Padding(
                         padding: const EdgeInsets.only(left: 30, bottom: 20),
@@ -150,15 +170,15 @@ class _HomePageState extends State<HomePage> {
                           style: const TextStyle(color: Colors.blueAccent, fontSize: 16),
                         ),
                       ),
-                      _drawerItem("P R O F I L E", () {}),
+                      _drawerItem("P R O F I L E", () {}, textColor),
                       const SizedBox(height: 20),
-                      _drawerItem("B O O K M A R K S", () {}),
+                      _drawerItem("B O O K M A R K S", () {}, textColor),
                       const SizedBox(height: 20),
                       if (isAdmin) ...[
                         _drawerItem("A D M I N    P A N E L", () {
                           Navigator.pop(context);
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminDashboard()));
-                        }),
+                        }, textColor),
                         const SizedBox(height: 20),
                       ],
                       _drawerItem("L O G O U T", () async {
@@ -167,18 +187,18 @@ class _HomePageState extends State<HomePage> {
                           Navigator.pop(context);
                           setState(() {});
                         }
-                      }),
+                      }, textColor),
                     ],
                     const SizedBox(height: 20),
-                    _drawerItem("S E T T I N G S", () {}),
+                    _drawerItem("S E T T I N G S", () {}, textColor),
                     const SizedBox(height: 20),
-                    _drawerItem("A B O U T", () {}),
+                    _drawerItem("A B O U T", () {}, textColor),
                     const SizedBox(height: 100),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 30, bottom: 40),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 30, bottom: 40),
                       child: Text(
                         "W  O  G   S  T  U  D  I  O  S",
-                        style: TextStyle(color: Colors.white54, fontSize: 12, letterSpacing: 3),
+                        style: TextStyle(color: subTextColor, fontSize: 12, letterSpacing: 3),
                       ),
                     )
                   ],
@@ -193,46 +213,46 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "D A I L Y   V E R S E",
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
+                style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
               ),
               const SizedBox(height: 30),
               Text(
                 "నేను నీకు తోడైయున్నాను,\nభయపడకుము. నీ దేవుడనైన\nనేను నిన్ను బలపరతును.",
-                style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 22, height: 1.5),
+                style: GoogleFonts.balooTammudu2(color: textColor, fontSize: 22, height: 1.5),
               ),
               const SizedBox(height: 10),
-              const Align(
+              Align(
                 alignment: Alignment.centerRight,
                 child: Text(
                   "— యెషయా 41:10",
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(color: subTextColor, fontSize: 14),
                 ),
               ),
               const SizedBox(height: 40),
-              const Divider(color: Colors.white24, thickness: 1),
+              Divider(color: isLight ? Colors.black12 : Colors.white24, thickness: 1),
               const SizedBox(height: 40),
-              const Text(
+              Text(
                 "N O T I F I C A T I O N",
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
+                style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
               ),
               const SizedBox(height: 25),
               Text(
                 "నేటి ధ్యానం",
-                style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20),
+                style: GoogleFonts.balooTammudu2(color: textColor, fontSize: 20),
               ),
               const SizedBox(height: 10),
               Text(
                 "దేవుని వాక్యం నీ పాదములకు దీపము, నీ\nత్రోవకు వెలుగు.",
-                style: GoogleFonts.balooTammudu2(color: Colors.white70, fontSize: 18, height: 1.5),
+                style: GoogleFonts.balooTammudu2(color: subTextColor, fontSize: 18, height: 1.5),
               ),
               const SizedBox(height: 30),
               GestureDetector(
                 onTap: () {},
-                child: const Text(
+                child: Text(
                   "EXPLORE NOW  →",
-                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2),
+                  style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2),
                 ),
               ),
             ],
@@ -245,10 +265,10 @@ class _HomePageState extends State<HomePage> {
             highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
-            backgroundColor: Colors.black, // బాటమ్ బార్ కూడా బ్లాక్ చేసేశాం
+            backgroundColor: bgColor, 
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.white38,
+            selectedItemColor: isLight ? Colors.blueAccent : Colors.white,
+            unselectedItemColor: isLight ? Colors.black38 : Colors.white38,
             selectedFontSize: 10,
             unselectedFontSize: 10,
             currentIndex: _selectedIndex,
