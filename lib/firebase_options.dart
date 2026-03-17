@@ -15,7 +15,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDt8ql0Erzq9fWP3R-YRUvtGjLSSUhXvkc',
+    apiKey: 'AIzaSyAYWludiSKAvzaGhAlH9IeOeJaCh-g38eQ',
     appId: '1:461552979998:web:c70390a7929a1c3edf1e0f',
     messagingSenderId: '...',
     projectId: 'wog-app-e922b',
