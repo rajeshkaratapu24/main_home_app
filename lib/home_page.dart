@@ -89,9 +89,9 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
-        // ఇక్కడ ఉన్న backgroundColor: Colors.black, తీసేశాను
+        backgroundColor: Colors.black, // మళ్ళీ బ్లాక్ కలర్ యాడ్ చేశాం
         appBar: AppBar(
-          // ఇక్కడ ఉన్న backgroundColor తీసేశాను
+          backgroundColor: Colors.black, // ఇక్కడ కూడా బ్లాక్
           elevation: 0,
           leading: Builder(
             builder: (context) => IconButton(
@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
         ),
         
         drawer: Drawer(
-          // ఇక్కడ ఉన్న backgroundColor తీసేశాను
+          backgroundColor: Colors.black, // డ్రాయర్ కూడా బ్లాక్
           surfaceTintColor: Colors.transparent,
           child: Builder(
             builder: (context) {
@@ -130,7 +130,7 @@ class _HomePageState extends State<HomePage> {
               }
 
               return Container(
-                // ఇక్కడ ఉన్న color: Colors.black తీసేశాను
+                color: Colors.black, // లోపల కంటైనర్ కూడా బ్లాక్
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
@@ -243,7 +243,7 @@ class _HomePageState extends State<HomePage> {
             highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
-            // ఇక్కడ ఉన్న backgroundColor: Colors.black తీసేశాను
+            backgroundColor: Colors.black, // బాటమ్ బార్ కూడా బ్లాక్ చేసేశాం
             type: BottomNavigationBarType.fixed,
             selectedItemColor: Colors.white,
             unselectedItemColor: Colors.white38,
