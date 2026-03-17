@@ -18,6 +18,7 @@ dependencies:
   cloud_firestore: ^5.0.0
   firebase_auth: ^5.1.0
   firebase_storage: ^12.0.0
+  firebase_database: ^11.0.1 # <-- కొత్తగా యాడ్ చేసిన డేటాబేస్ ప్యాకేజీ
   http: ^1.1.0
   audioplayers: ^5.2.1
   google_sign_in: ^6.2.1
