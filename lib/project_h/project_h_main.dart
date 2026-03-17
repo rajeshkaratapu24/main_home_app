@@ -34,15 +34,19 @@ class ProjectHMain extends StatelessWidget {
   }
 
   // కార్డ్స్ డిజైన్ కోసం హెల్పర్ విడ్జెట్
-  Widget _buildHCard(BuildContext context, String title, String subtitle, IconData icon, Color color) {
+    Widget _buildHCard(BuildContext context, String title, String subtitle, IconData icon, Color color) {
     return InkWell(
       onTap: () {
         if (title == "H A N D S") {
           Navigator.push(context, MaterialPageRoute(builder: (context) => const HandsDashboard()));
+        } else if (title == "H E A D") { // <--- ఈ కొత్త లైన్ యాడ్ చెయ్
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const HeadNotes()));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("$title is coming soon!")));
         }
       },
+      // ... మిగతా కార్డ్ డిజైన్ అంతా అలాగే ఉంచు
+
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
