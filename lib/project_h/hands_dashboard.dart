@@ -20,19 +20,94 @@ class _HandsDashboardState extends State<HandsDashboard> {
     "Yearly": {"WhatsApp": 1200, "Instagram": 600, "Facebook": 450, "Total": 2250},
   };
 
+  // ఫామ్ కంట్రోలర్స్
+  final TextEditingController waController = TextEditingController();
+  final TextEditingController instaController = TextEditingController();
+  final TextEditingController fbController = TextEditingController();
+
+  // డేటా ఎంట్రీ ఫామ్ (డైలాగ్ బాక్స్)
   void _showAddEntryDialog() {
+    waController.clear();
+    instaController.clear();
+    fbController.clear();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: Text("Log Today's Work", style: GoogleFonts.ubuntu(color: Colors.white)),
-        content: const Text("ఇక్కడ మనం వాట్సాప్, ఇన్‌స్టా నంబర్స్ ఎంటర్ చేసే ఫామ్ పెడతాం బ్రో. (Coming Soon)", style: TextStyle(color: Colors.white70)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Text("Log Today's Work", style: GoogleFonts.ubuntu(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("ఎంత మందికి దేవుని వాక్యం షేర్ చేశావో ఇక్కడ ఎంటర్ చెయ్:", style: TextStyle(color: Colors.white70, fontSize: 13)),
+            const SizedBox(height: 20),
+            _buildInputBox("WhatsApp Reach", waController, Icons.chat, Colors.greenAccent),
+            const SizedBox(height: 15),
+            _buildInputBox("Instagram Reach", instaController, Icons.camera_alt, Colors.pinkAccent),
+            const SizedBox(height: 15),
+            _buildInputBox("Facebook Reach", fbController, Icons.facebook, Colors.blueAccent),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("CLOSE", style: TextStyle(color: Colors.redAccent)),
+            child: const Text("CANCEL", style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              // ఎంటర్ చేసిన నంబర్స్ తీసుకుంటున్నాం (ఖాళీగా ఉంటే 0 అనుకుంటుంది)
+              int waAdd = int.tryParse(waController.text) ?? 0;
+              int instaAdd = int.tryParse(instaController.text) ?? 0;
+              int fbAdd = int.tryParse(fbController.text) ?? 0;
+              int newTotal = waAdd + instaAdd + fbAdd;
+
+              if (newTotal > 0) {
+                setState(() {
+                  // డైలీ డేటా కి కొత్త నంబర్స్ యాడ్ చేస్తున్నాం
+                  trackingData["Daily"]!["WhatsApp"] = trackingData["Daily"]!["WhatsApp"]! + waAdd;
+                  trackingData["Daily"]!["Instagram"] = trackingData["Daily"]!["Instagram"]! + instaAdd;
+                  trackingData["Daily"]!["Facebook"] = trackingData["Daily"]!["Facebook"]! + fbAdd;
+                  trackingData["Daily"]!["Total"] = trackingData["Daily"]!["Total"]! + newTotal;
+                  
+                  // వీక్లీ, మంత్లీ కి కూడా యాడ్ అవ్వాలి కదా
+                  trackingData["Weekly"]!["Total"] = trackingData["Weekly"]!["Total"]! + newTotal;
+                  trackingData["Monthly"]!["Total"] = trackingData["Monthly"]!["Total"]! + newTotal;
+                  trackingData["Yearly"]!["Total"] = trackingData["Yearly"]!["Total"]! + newTotal;
+                });
+                
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("+$newTotal People Reached Today! Praise God 🙌"), backgroundColor: Colors.green),
+                );
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("SAVE LOG", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ),
         ],
+      ),
+    );
+  }
+
+  // టెక్స్ట్ బాక్స్ డిజైన్
+  Widget _buildInputBox(String hint, TextEditingController controller, IconData icon, Color color) {
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: color, size: 20),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white38),
+        filled: true,
+        fillColor: Colors.black,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
       ),
     );
   }
@@ -68,7 +143,7 @@ class _HandsDashboardState extends State<HandsDashboard> {
             ),
             const SizedBox(height: 30),
 
-            // మెయిన్ టోటల్ స్కోర్ కార్డ్ (Instagram Insights లాగా)
+            // మెయిన్ టోటల్ స్కోర్ కార్డ్
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(25),
