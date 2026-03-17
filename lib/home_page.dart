@@ -268,8 +268,8 @@ class _HomePageState extends State<HomePage> {
                 label: "S O N G S",
               ),
               BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 5), child: Icon(Icons.radar_outlined)),
-                label: "T R A C K",
+                icon: Padding(padding: EdgeInsets.only(bottom: 5), child: Icon(Icons.hub_outlined)),
+                label: "P R O J E C T  H",
               ),
             ],
           ),
