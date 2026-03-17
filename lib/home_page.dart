@@ -1,5 +1,5 @@
- import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // యాప్ క్లోజ్ చేయడానికి అవసరం
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'bible/bible_home.dart';
@@ -70,29 +70,28 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false, // బ్యాక్ బటన్ ని ఆపి మన కండిషన్ రన్ చేస్తుంది
+      canPop: false, 
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
-        // డ్రాయర్ ఓపెన్ ఉంటే క్లోజ్ చేస్తుంది
         if (Scaffold.of(context).isDrawerOpen) {
           Navigator.pop(context);
           return;
         }
 
-        // హోమ్ లో ఉన్నప్పుడు పర్మిషన్ అడుగుతుంది
         final shouldPop = await _showExitConfirmation();
         if (shouldPop && context.mounted) {
-          SystemNavigator.pop(); // యాప్ ని పూర్తిగా క్లోజ్ చేస్తుంది
+          SystemNavigator.pop(); 
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        // ఇక్కడ ఉన్న backgroundColor: Colors.black, తీసేశాను
         appBar: AppBar(
-          backgroundColor: Colors.black,
+          // ఇక్కడ ఉన్న backgroundColor తీసేశాను
           elevation: 0,
           leading: Builder(
             builder: (context) => IconButton(
@@ -114,7 +113,7 @@ class _HomePageState extends State<HomePage> {
         ),
         
         drawer: Drawer(
-          backgroundColor: Colors.black,
+          // ఇక్కడ ఉన్న backgroundColor తీసేశాను
           surfaceTintColor: Colors.transparent,
           child: Builder(
             builder: (context) {
@@ -131,7 +130,7 @@ class _HomePageState extends State<HomePage> {
               }
 
               return Container(
-                color: Colors.black,
+                // ఇక్కడ ఉన్న color: Colors.black తీసేశాను
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
@@ -244,7 +243,7 @@ class _HomePageState extends State<HomePage> {
             highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
-            backgroundColor: Colors.black,
+            // ఇక్కడ ఉన్న backgroundColor: Colors.black తీసేశాను
             type: BottomNavigationBarType.fixed,
             selectedItemColor: Colors.white,
             unselectedItemColor: Colors.white38,
