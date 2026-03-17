@@ -49,7 +49,8 @@ class _BibleHomeState extends State<BibleHome> {
     "Nehemiah": "నెహెమ్యా",
     "Esther": "ఎస్తేరు",
     "Job": "యోబు",
-    "Psalms": "కీర్తనలు",
+    "Psalm": "కీర్తనలు",
+    "Psalms": "కీర్తనలు", // సేఫ్టీ కోసం రెండు పేర్లు ఇచ్చేద్దాం
     "Proverbs": "సామెతలు",
     "Ecclesiastes": "ప్రసంగి",
     "Song of Solomon": "పరమగీతము",
