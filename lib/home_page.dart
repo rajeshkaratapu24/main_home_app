@@ -17,11 +17,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  void _onItemTapped(int index) {
+ void _onItemTapped(int index) {
     if (index == 1) { // BIBLE clicked
       Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
     } else if (index == 2) { // SONGS clicked
       Navigator.push(context, MaterialPageRoute(builder: (context) => const SongsPage()));
+    } else if (index == 3) { // PROJECT H clicked (కొత్తది)
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectHSplash()));
     } else {
       setState(() {
         _selectedIndex = index;
