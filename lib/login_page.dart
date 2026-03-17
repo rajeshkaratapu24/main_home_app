@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart'; // కొత్తగా యాడ్ చేసిన ఇంపోర్ట్
 import 'admin/admin_dashboard.dart';
 import 'home_page.dart';
 
@@ -13,7 +14,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final String adminEmail = "rajeshkaratapu24@gmail.com";
   final String adminPhone = "+919999999999"; // నీ నెంబర్ మార్చుకో
-  
+
   bool isPhoneLogin = false;
   bool otpSent = false;
   final TextEditingController _phoneController = TextEditingController();
@@ -26,26 +27,35 @@ class _LoginPageState extends State<LoginPage> {
     if (user == null) return;
 
     if (user.email == adminEmail || user.phoneNumber == adminPhone) {
-      // అడ్మిన్ అయితే డాష్‌బోర్డ్ కి
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AdminDashboard()));
     } else {
-      // నార్మల్ యూజర్ అయితే హోమ్ పేజీ కి
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  HomePage()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
     }
   }
 
-  // 1. Google Login (Bug Fixed)
+  // 1. Google Login (Android కోసం ఫిక్స్ చేసిన కోడ్) 🚀
   Future<void> _loginWithGoogle() async {
     try {
-      final provider = GoogleAuthProvider();
-      try {
-        await FirebaseAuth.instance.signInWithPopup(provider);
-      } catch (e) {
-        if (FirebaseAuth.instance.currentUser == null) {
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login Cancelled.")));
-          return;
-        }
+      // గూగుల్ అకౌంట్ సెలెక్ట్ చేసుకోవడానికి
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login Cancelled by User.")));
+        return;
       }
+
+      // అథెంటికేషన్ డీటెయిల్స్ తెచ్చుకోవడానికి
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // ఫైర్‌బేస్ కి ఇవ్వాల్సిన క్రెడెన్షియల్స్
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // ఫైర్‌బేస్ లోకి సైన్ ఇన్ అవ్వడం
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
       if (mounted) _checkRoleAndNavigate();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -56,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _sendOTP() async {
     String phone = _phoneController.text.trim();
     if (phone.isEmpty) return;
-    
+
     try {
       confirmationResult = await FirebaseAuth.instance.signInWithPhoneNumber(phone);
       setState(() => otpSent = true);
@@ -92,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  HomePage())),
+          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage())),
         ),
       ),
       body: Center(
