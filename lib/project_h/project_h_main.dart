@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'hands_dashboard.dart';
+import 'hands_dashboard.dart'; // కొత్తగా యాడ్ చేసిన ట్రాకర్ పేజీ
 
 class ProjectHMain extends StatelessWidget {
   const ProjectHMain({super.key});
@@ -32,7 +32,7 @@ class ProjectHMain extends StatelessWidget {
   }
 
   // కార్డ్స్ డిజైన్ కోసం హెల్పర్ విడ్జెట్
- Widget _buildHCard(BuildContext context, String title, String subtitle, IconData icon, Color color) {
+  Widget _buildHCard(BuildContext context, String title, String subtitle, IconData icon, Color color) {
     return InkWell(
       onTap: () {
         if (title == "H A N D S") {
@@ -41,15 +41,11 @@ class ProjectHMain extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("$title is coming soon!")));
         }
       },
-      // ... మిగతా కార్డ్ డిజైన్ అంతా అలాగే ఉంచు
-        // ఫ్యూచర్ లో లోపలి పేజీలకి వెళ్ళడానికి కనెక్షన్ ఇక్కడ ఇస్తాం
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("$title is coming soon!")));
-      },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A), // మనకి ఇష్టమైన ప్యూర్ బ్లాక్ మీద డార్క్ కార్డ్ లుక్
+          color: const Color(0xFF1A1A1A), 
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white10),
         ),
