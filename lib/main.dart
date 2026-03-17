@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; // ఫైర్‌బేస్ కీస్ ఉండే ఫైల్
-import 'home_page.dart';
+import 'splash_screen.dart';
 
 void main() async {
   // యాప్ స్టార్ట్ అయ్యే ముందే ఫైర్‌బేస్ ని కనెక్ట్ చేస్తున్నాం
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
       ),
-      home: HomePage(), // ఇక్కడ const అవసరం లేదు
+      home: const SplashScreen(), // ఇక్కడ const అవసరం లేదు
     );
   }
 }
