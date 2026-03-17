@@ -30,8 +30,8 @@ android {
         versionName = flutter.versionName
     }
 
-        signingConfigs {
-        release {
+    signingConfigs {
+        create("release") {
             storeFile = file("wog-key.jks")
             storePassword = "wog12345"
             keyAlias = "wog"
@@ -40,11 +40,10 @@ android {
     }
 
     buildTypes {
-        release {
-            signingConfig = signingConfigs.release
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
         }
     }
-
 }
 
 flutter {
