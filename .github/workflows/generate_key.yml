@@ -1,0 +1,29 @@
+name: Generate Keystore
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - name: Generate Keystore
+        run: |
+          keytool -genkey -v -keystore android/app/wog-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias wog -dname "CN=WOG" -storepass "wog12345" -keypass "wog12345"
+      - name: Show SHA Keys
+        run: |
+          echo "====================================="
+          echo "BRO, NEE SHA KEYS KINDA UNNAYI CHUDU:"
+          echo "====================================="
+          keytool -list -v -keystore android/app/wog-key.jks -alias wog -storepass "wog12345"
+      - name: Save Keystore to GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add android/app/wog-key.jks
+          git commit -m "Auto-generated Keystore"
+          git push
