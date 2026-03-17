@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'admin_albums.dart'; // కొత్తగా క్రియేట్ చేసిన ఆల్బమ్స్ ఫైల్ ని ఇంపోర్ట్ చేశాం
+import 'package:firebase_database/firebase_database.dart'; // ఫైర్‌బేస్ డేటాబేస్ ఇంపోర్ట్
+import 'admin_albums.dart'; 
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -10,6 +11,60 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
+
+  // బైబిల్ BGM లింక్ మార్చడానికి డైలాగ్ బాక్స్
+  Future<void> _showBgmDialog() async {
+    TextEditingController bgmController = TextEditingController();
+    final ref = FirebaseDatabase.instance.ref("admin_settings/bible_bgm");
+    
+    // డైలాగ్ ఓపెన్ అవ్వగానే పాత లింక్ ఏమైనా ఉంటే చూపిస్తుంది
+    final snapshot = await ref.get();
+    if (snapshot.exists) {
+      bgmController.text = snapshot.value.toString();
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1A1A1A),
+          title: Text("బైబిల్ మ్యూజిక్ లింక్", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20)),
+          content: TextField(
+            controller: bgmController,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              hintText: "Enter mp3 URL here...",
+              hintStyle: TextStyle(color: Colors.white54),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.greenAccent)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("CANCEL", style: TextStyle(color: Colors.redAccent)),
+            ),
+            TextButton(
+              onPressed: () async {
+                // ఫైర్‌బేస్ లో సేవ్ చేస్తున్నాం
+                await ref.set(bgmController.text.trim());
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Music Link Updated Successfully!"), backgroundColor: Colors.green),
+                  );
+                }
+              },
+              child: const Text("SAVE", style: TextStyle(color: Colors.greenAccent)),
+            ),
+          ],
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,6 +101,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminAlbums()));
                   }),
                   
+                  // --- బైబిల్ మ్యూజిక్ కంట్రోల్ బటన్ (కొత్తది) ---
+                  _adminCard("బైబిల్ మ్యూజిక్", Icons.library_music, Colors.pinkAccent, () {
+                    _showBgmDialog();
+                  }),
+
                   // --- మిగతా బటన్స్ ---
                   _adminCard("ఆడియో సందేశాలు", Icons.mic, Colors.orangeAccent, () {
                     // ఆడియో మెసేజెస్ కోసం ఫ్యూచర్ లో రాద్దాం
