@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:google_fonts/google_fonts.dart'; // గూగుల్ ఫాంట్స్ ఇంపోర్ట్
 import 'home_page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -56,11 +57,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   "WORLD OF GOD",
-                  style: TextStyle(
+                  style: GoogleFonts.ubuntu( // ఉబుంటు ఫాంట్ అప్లై చేశాం
                     fontSize: 38,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w300, // ఇది స్లిమ్ (Light) లుక్ ఇస్తుంది
                     color: Colors.white,
                     letterSpacing: 4,
                   ),
@@ -68,9 +69,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 const SizedBox(height: 10),
                 Text(
                   "eco system",
-                  style: TextStyle(
+                  style: GoogleFonts.ubuntu(
                     fontSize: 18,
-                    color: Colors.greenAccent.withOpacity(0.9), // లైట్ గ్రీన్ కలర్
+                    fontWeight: FontWeight.w300, // ఇది కూడా స్లిమ్ గా
+                    color: Colors.greenAccent.withOpacity(0.9),
                     letterSpacing: 3,
                     fontStyle: FontStyle.italic,
                   ),
