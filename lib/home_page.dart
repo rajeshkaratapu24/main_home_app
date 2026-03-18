@@ -7,7 +7,7 @@ import 'login_page.dart';
 import 'admin/admin_dashboard.dart';
 import '/songs_page.dart';
 import 'project_h/project_h_splash.dart';
-import 'main.dart'; // థీమ్ కంట్రోల్ చేయడానికి దీన్ని కొత్తగా యాడ్ చేశాం
+import 'main.dart'; 
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,13 +18,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  
+  // Drawer ని కంట్రోల్ చేయడానికి మనం ఈ కీ వాడుతున్నాం
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void _onItemTapped(int index) {
-    if (index == 1) { // BIBLE clicked
+    if (index == 1) { 
       Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
-    } else if (index == 2) { // SONGS clicked
+    } else if (index == 2) { 
       Navigator.push(context, MaterialPageRoute(builder: (context) => const SongsPage()));
-    } else if (index == 3) { // PROJECT H clicked 
+    } else if (index == 3) { 
       Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectHSplash()));
     } else {
       setState(() {
@@ -35,7 +38,6 @@ class _HomePageState extends State<HomePage> {
 
   // యాప్ క్లోజ్ చేసే ముందు అడిగే డైలాగ్ బాక్స్
   Future<bool> _showExitConfirmation() async {
-    // డైలాగ్ బాక్స్ కూడా థీమ్ కి తగ్గట్టు మారాలి కదా
     bool isLight = Theme.of(context).brightness == Brightness.light;
     Color cardColor = isLight ? Colors.white : const Color(0xFF1A1A1A);
     Color textColor = isLight ? Colors.black : Colors.white;
@@ -61,7 +63,6 @@ class _HomePageState extends State<HomePage> {
     ) ?? false;
   }
 
-  // Drawer Item Helper Widget (కలర్ డైనమిక్ గా మారేలా చేశాం)
   Widget _drawerItem(String title, VoidCallback onTap, Color tColor) {
     return Padding(
       padding: const EdgeInsets.only(left: 30),
@@ -83,10 +84,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // ఇక్కడే అసలు మ్యాజిక్ ఉంది: థీమ్ లైట్ ఆ? డార్క్ ఆ? చెక్ చేస్తుంది
     bool isLight = Theme.of(context).brightness == Brightness.light;
     
-    // థీమ్ ని బట్టి ఆటోమేటిక్ గా రంగులు సెట్ అవుతాయి
     Color bgColor = isLight ? Colors.white : Colors.black;
     Color textColor = isLight ? Colors.black : Colors.white;
     Color subTextColor = isLight ? Colors.black54 : Colors.white70;
@@ -96,26 +95,27 @@ class _HomePageState extends State<HomePage> {
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
-        if (Scaffold.of(context).isDrawerOpen) {
+        // Drawer ఓపెన్ ఉంటే ముందు దాన్ని క్లోజ్ చేస్తుంది
+        if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
           Navigator.pop(context);
           return;
         }
 
+        // Drawer క్లోజ్ లోనే ఉంటే, అప్పుడు మన ఎగ్జిట్ పర్మిషన్ అడుగుతుంది
         final shouldPop = await _showExitConfirmation();
         if (shouldPop && context.mounted) {
           SystemNavigator.pop(); 
         }
       },
       child: Scaffold(
-        backgroundColor: bgColor, // డైనమిక్ బ్యాక్‌గ్రౌండ్
+        key: _scaffoldKey, // ఇక్కడ కీ అటాచ్ చేశాం
+        backgroundColor: bgColor, 
         appBar: AppBar(
           backgroundColor: bgColor, 
           elevation: 0,
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu, color: textColor),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+          leading: IconButton(
+            icon: Icon(Icons.menu, color: textColor),
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(), // కీ ద్వారా ఓపెన్ చేస్తున్నాం
           ),
           title: Text(
             "W    O    G",
@@ -123,11 +123,9 @@ class _HomePageState extends State<HomePage> {
           ),
           centerTitle: true,
           actions: [
-            // ఇక్కడే నీ సూర్యుడు/చంద్రుడు బటన్ పెట్టాం
             IconButton(
               icon: Icon(isLight ? Icons.nights_stay : Icons.wb_sunny_outlined, color: textColor),
               onPressed: () {
-                // నొక్కగానే లైట్/డార్క్ కి మారుతుంది (main.dart లోని themeNotifier కి కనెక్ట్ చేసాం)
                 themeNotifier.value = isLight ? ThemeMode.dark : ThemeMode.light;
               },
             ),
@@ -161,7 +159,7 @@ class _HomePageState extends State<HomePage> {
                       _drawerItem("L O G I N", () {
                         Navigator.pop(context);
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()));
-                      }, textColor), // కలర్ కూడా పంపిస్తున్నాం
+                      }, textColor), 
                     ] else ...[
                       Padding(
                         padding: const EdgeInsets.only(left: 30, bottom: 20),
