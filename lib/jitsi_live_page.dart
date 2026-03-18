@@ -19,11 +19,12 @@ class _JitsiLivePageState extends State<JitsiLivePage> {
     // యాప్ లోపలే Jitsi ని చూపించడానికి ఒక IFrame క్రియేట్ చేస్తున్నాం
     ui_web.platformViewRegistry.registerViewFactory(viewId, (int viewId) {
       final iframe = html.IFrameElement()
-        ..src = 'https://meet.jit.si/WorldOfGodLiveRoom' // ఇక్కడ WorldOfGodLiveRoom బదులు నీకు నచ్చిన పేరు పెట్టుకోవచ్చు
+        // ఇక్కడే మ్యాజిక్ చేసాం! ఆ ప్రమోషన్ పేజీ రాకుండా లింక్ చివరన కండిషన్ పెట్టాం
+        ..src = 'https://meet.jit.si/WorldOfGodLiveRoom#config.disableDeepLinking=true' 
         ..style.border = 'none'
         ..style.width = '100%'
         ..style.height = '100%'
-        ..allow = 'camera; microphone; fullscreen; display-capture'; // ఈ పర్మిషన్స్ ఇస్తేనే లైవ్ లో వాయిస్/వీడియో పనిచేస్తుంది!
+        ..allow = 'camera; microphone; fullscreen; display-capture'; 
       return iframe;
     });
   }
