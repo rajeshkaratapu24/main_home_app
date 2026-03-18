@@ -19,7 +19,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   
-  // Drawer ని కంట్రోల్ చేయడానికి మనం ఈ కీ వాడుతున్నాం
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void _onItemTapped(int index) {
@@ -36,7 +35,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // యాప్ క్లోజ్ చేసే ముందు అడిగే డైలాగ్ బాక్స్
   Future<bool> _showExitConfirmation() async {
     bool isLight = Theme.of(context).brightness == Brightness.light;
     Color cardColor = isLight ? Colors.white : const Color(0xFF1A1A1A);
@@ -47,7 +45,8 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: cardColor,
-        title: Text("Exit App", style: TextStyle(color: textColor)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Text("Exit App", style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
         content: Text("Do you want to close WORLD OF GOD?", style: TextStyle(color: subTextColor)),
         actions: [
           TextButton(
@@ -72,13 +71,25 @@ class _HomePageState extends State<HomePage> {
         highlightColor: Colors.transparent,
         child: Text(
           title,
-          style: TextStyle(
-            color: tColor,
-            fontSize: 16,
-            letterSpacing: 2.5,
-          ),
+          style: TextStyle(color: tColor, fontSize: 16, letterSpacing: 2.5),
         ),
       ),
+    );
+  }
+
+  // ---------------------------------------------------------
+  // కార్డ్స్ డిజైన్ కోసం మనం తయారు చేసిన స్పెషల్ ఫంక్షన్
+  // ---------------------------------------------------------
+  Widget _buildPremiumCard({required Widget child, required bool isLight}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        // డార్క్ మోడ్ లో డార్క్ గ్రే, లైట్ మోడ్ లో లైట్ గ్రే కలర్ వస్తుంది. ఎడ్జెస్ ఉండవు.
+        color: isLight ? Colors.grey[100] : const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: child,
     );
   }
 
@@ -94,28 +105,24 @@ class _HomePageState extends State<HomePage> {
       canPop: false, 
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-
-        // Drawer ఓపెన్ ఉంటే ముందు దాన్ని క్లోజ్ చేస్తుంది
         if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
           Navigator.pop(context);
           return;
         }
-
-        // Drawer క్లోజ్ లోనే ఉంటే, అప్పుడు మన ఎగ్జిట్ పర్మిషన్ అడుగుతుంది
         final shouldPop = await _showExitConfirmation();
         if (shouldPop && context.mounted) {
           SystemNavigator.pop(); 
         }
       },
       child: Scaffold(
-        key: _scaffoldKey, // ఇక్కడ కీ అటాచ్ చేశాం
+        key: _scaffoldKey, 
         backgroundColor: bgColor, 
         appBar: AppBar(
           backgroundColor: bgColor, 
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.menu, color: textColor),
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(), // కీ ద్వారా ఓపెన్ చేస్తున్నాం
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(), 
           ),
           title: Text(
             "W    O    G",
@@ -163,10 +170,7 @@ class _HomePageState extends State<HomePage> {
                     ] else ...[
                       Padding(
                         padding: const EdgeInsets.only(left: 30, bottom: 20),
-                        child: Text(
-                          "Hi, $displayName!",
-                          style: const TextStyle(color: Colors.blueAccent, fontSize: 16),
-                        ),
+                        child: Text("Hi, $displayName!", style: const TextStyle(color: Colors.blueAccent, fontSize: 16)),
                       ),
                       _drawerItem("P R O F I L E", () {}, textColor),
                       const SizedBox(height: 20),
@@ -194,10 +198,7 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 100),
                     Padding(
                       padding: const EdgeInsets.only(left: 30, bottom: 40),
-                      child: Text(
-                        "W  O  G   S  T  U  D  I  O  S",
-                        style: TextStyle(color: subTextColor, fontSize: 12, letterSpacing: 3),
-                      ),
+                      child: Text("W  O  G   S  T  U  D  I  O  S", style: TextStyle(color: subTextColor, fontSize: 12, letterSpacing: 3)),
                     )
                   ],
                 ),
@@ -206,55 +207,106 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
 
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "D A I L Y   V E R S E",
-                style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
+        // ఇక్కడ Column కి బదులు ListView వాడాము, అప్పుడు చిన్న స్క్రీన్ లో కూడా స్క్రోల్ అవుతుంది
+        body: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+          children: [
+            
+            // ------------------------------------
+            // కార్డ్ 1 : DAILY VERSE
+            // ------------------------------------
+            _buildPremiumCard(
+              isLight: isLight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("D A I L Y   V E R S E", style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 3)),
+                  const SizedBox(height: 20),
+                  Text(
+                    "నేను నీకు తోడైయున్నాను,\nభయపడకుము. నీ దేవుడనైన\nనేను నిన్ను బలపరతును.",
+                    style: GoogleFonts.balooTammudu2(color: textColor, fontSize: 22, height: 1.5),
+                  ),
+                  const SizedBox(height: 15),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text("— యెషయా 41:10", style: TextStyle(color: subTextColor, fontSize: 14)),
+                  ),
+                ],
               ),
-              const SizedBox(height: 30),
-              Text(
-                "నేను నీకు తోడైయున్నాను,\nభయపడకుము. నీ దేవుడనైన\nనేను నిన్ను బలపరతును.",
-                style: GoogleFonts.balooTammudu2(color: textColor, fontSize: 22, height: 1.5),
+            ),
+            const SizedBox(height: 25),
+
+            // ------------------------------------
+            // కార్డ్ 2 : NOTIFICATION (ధ్యానం)
+            // ------------------------------------
+            _buildPremiumCard(
+              isLight: isLight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("N O T I F I C A T I O N", style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 3)),
+                  const SizedBox(height: 20),
+                  Text("నేటి ధ్యానం", style: GoogleFonts.balooTammudu2(color: textColor, fontSize: 20)),
+                  const SizedBox(height: 5),
+                  Text(
+                    "దేవుని వాక్యం నీ పాదములకు దీపము, నీ త్రోవకు వెలుగు.",
+                    style: GoogleFonts.balooTammudu2(color: subTextColor, fontSize: 18, height: 1.5),
+                  ),
+                  const SizedBox(height: 25),
+                  GestureDetector(
+                    onTap: () {},
+                    child: Text("EXPLORE NOW  →", style: TextStyle(color: isLight ? Colors.blueAccent : Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  "— యెషయా 41:10",
-                  style: TextStyle(color: subTextColor, fontSize: 14),
-                ),
+            ),
+            const SizedBox(height: 25),
+
+            // ------------------------------------
+            // కార్డ్ 3 : DAILY LIVE (Jitsi ప్లాన్ కోసం)
+            // ------------------------------------
+            _buildPremiumCard(
+              isLight: isLight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.sensors, color: Colors.redAccent, size: 20),
+                      const SizedBox(width: 10),
+                      Text("L I V E   S T R E A M", style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 3)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text("Evening Fellowship & Prayer", style: GoogleFonts.ubuntu(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Join our daily live session with the community. Connect directly via Jitsi.",
+                    style: TextStyle(color: subTextColor, fontSize: 14, height: 1.4),
+                  ),
+                  const SizedBox(height: 25),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        // ఫ్యూచర్ లో ఇక్కడ Jitsi కనెక్షన్ కోడ్ రాద్దాం
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jitsi Live Connection Coming Soon!")));
+                      },
+                      child: const Text("JOIN LIVE NOW", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 40),
-              Divider(color: isLight ? Colors.black12 : Colors.white24, thickness: 1),
-              const SizedBox(height: 40),
-              Text(
-                "N O T I F I C A T I O N",
-                style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 3),
-              ),
-              const SizedBox(height: 25),
-              Text(
-                "నేటి ధ్యానం",
-                style: GoogleFonts.balooTammudu2(color: textColor, fontSize: 20),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "దేవుని వాక్యం నీ పాదములకు దీపము, నీ\nత్రోవకు వెలుగు.",
-                style: GoogleFonts.balooTammudu2(color: subTextColor, fontSize: 18, height: 1.5),
-              ),
-              const SizedBox(height: 30),
-              GestureDetector(
-                onTap: () {},
-                child: Text(
-                  "EXPLORE NOW  →",
-                  style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2),
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 30), // కింద బార్ కి తగలకుండా స్పేస్
+          ],
         ),
 
         bottomNavigationBar: Theme(
@@ -263,10 +315,11 @@ class _HomePageState extends State<HomePage> {
             highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
-            backgroundColor: bgColor, 
+            backgroundColor: isLight ? Colors.white : const Color(0xFF1A1A1A), 
             type: BottomNavigationBarType.fixed,
             selectedItemColor: isLight ? Colors.blueAccent : Colors.white,
             unselectedItemColor: isLight ? Colors.black38 : Colors.white38,
+            elevation: 20,
             selectedFontSize: 10,
             unselectedFontSize: 10,
             currentIndex: _selectedIndex,
