@@ -8,6 +8,8 @@ import 'admin/admin_dashboard.dart';
 import '/songs_page.dart';
 import 'project_h/project_h_splash.dart';
 import 'main.dart'; 
+import 'jitsi_live_page.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
