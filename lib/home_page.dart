@@ -8,8 +8,7 @@ import 'admin/admin_dashboard.dart';
 import '/songs_page.dart';
 import 'project_h/project_h_splash.dart';
 import 'main.dart'; 
-import 'jitsi_live_page.dart';
-
+import 'jitsi_live_page.dart'; // మన కొత్త లైవ్ పేజీని ఇక్కడ లింక్ చేశాం!
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -79,19 +78,25 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ---------------------------------------------------------
-  // కార్డ్స్ డిజైన్ కోసం మనం తయారు చేసిన స్పెషల్ ఫంక్షన్
-  // ---------------------------------------------------------
   Widget _buildPremiumCard({required Widget child, required bool isLight}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        // డార్క్ మోడ్ లో డార్క్ గ్రే, లైట్ మోడ్ లో లైట్ గ్రే కలర్ వస్తుంది. ఎడ్జెస్ ఉండవు.
         color: isLight ? Colors.grey[100] : const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(20),
       ),
       child: child,
+    );
+  }
+
+  // ---------------------------------------------------------
+  // బటన్ నొక్కగానే యాప్ లోపలే లైవ్ కి వెళ్ళే ఫంక్షన్
+  // ---------------------------------------------------------
+  void _joinJitsiLive() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const JitsiLivePage()),
     );
   }
 
@@ -209,14 +214,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
 
-        // ఇక్కడ Column కి బదులు ListView వాడాము, అప్పుడు చిన్న స్క్రీన్ లో కూడా స్క్రోల్ అవుతుంది
         body: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
           children: [
-            
-            // ------------------------------------
-            // కార్డ్ 1 : DAILY VERSE
-            // ------------------------------------
             _buildPremiumCard(
               isLight: isLight,
               child: Column(
@@ -238,9 +238,6 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 25),
 
-            // ------------------------------------
-            // కార్డ్ 2 : NOTIFICATION (ధ్యానం)
-            // ------------------------------------
             _buildPremiumCard(
               isLight: isLight,
               child: Column(
@@ -264,9 +261,6 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 25),
 
-            // ------------------------------------
-            // కార్డ్ 3 : DAILY LIVE (Jitsi ప్లాన్ కోసం)
-            // ------------------------------------
             _buildPremiumCard(
               isLight: isLight,
               child: Column(
@@ -297,17 +291,14 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () {
-                        // ఫ్యూచర్ లో ఇక్కడ Jitsi కనెక్షన్ కోడ్ రాద్దాం
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jitsi Live Connection Coming Soon!")));
-                      },
+                      onPressed: _joinJitsiLive, // ఫంక్షన్ ఇక్కడ కాల్ అవుతుంది
                       child: const Text("JOIN LIVE NOW", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2)),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 30), // కింద బార్ కి తగలకుండా స్పేస్
+            const SizedBox(height: 30),
           ],
         ),
 
