@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'bible/bible_home.dart';
-import 'login_page.dart';
-import 'admin/admin_dashboard.dart';
 import '/songs_page.dart';
 import 'project_h/project_h_splash.dart';
 import 'main.dart'; 
-import 'jitsi_live_page.dart'; // మన కొత్త లైవ్ పేజీని ఇక్కడ లింక్ చేశాం!
+import 'jitsi_live_page.dart';
+import 'app_drawer.dart'; // <--- మన కొత్త సైడ్ మెనూ ఫైల్ ని ఇక్కడ ఇంపోర్ట్ చేశాం!
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -63,21 +61,6 @@ class _HomePageState extends State<HomePage> {
     ) ?? false;
   }
 
-  Widget _drawerItem(String title, VoidCallback onTap, Color tColor) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 30),
-      child: InkWell(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        child: Text(
-          title,
-          style: TextStyle(color: tColor, fontSize: 16, letterSpacing: 2.5),
-        ),
-      ),
-    );
-  }
-
   Widget _buildPremiumCard({required Widget child, required bool isLight}) {
     return Container(
       width: double.infinity,
@@ -90,9 +73,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ---------------------------------------------------------
-  // బటన్ నొక్కగానే యాప్ లోపలే లైవ్ కి వెళ్ళే ఫంక్షన్
-  // ---------------------------------------------------------
   void _joinJitsiLive() {
     Navigator.push(
       context,
@@ -103,7 +83,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     bool isLight = Theme.of(context).brightness == Brightness.light;
-    
     Color bgColor = isLight ? Colors.white : Colors.black;
     Color textColor = isLight ? Colors.black : Colors.white;
     Color subTextColor = isLight ? Colors.black54 : Colors.white70;
@@ -146,73 +125,10 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
 
-        drawer: Drawer(
-          backgroundColor: bgColor, 
-          surfaceTintColor: Colors.transparent,
-          child: Builder(
-            builder: (context) {
-              final user = FirebaseAuth.instance.currentUser;
-              final isAdmin = user != null && (user.email == "rajeshkaratapu24@gmail.com" || user.phoneNumber == "+919999999999");
-
-              String displayName = "User";
-              if (user != null) {
-                if (user.email != null && user.email!.isNotEmpty) {
-                  displayName = user.email!.split('@')[0];
-                } else if (user.phoneNumber != null) {
-                  displayName = user.phoneNumber!;
-                }
-              }
-
-              return Container(
-                color: bgColor, 
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    const SizedBox(height: 80),
-                    if (user == null) ...[
-                      _drawerItem("L O G I N", () {
-                        Navigator.pop(context);
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()));
-                      }, textColor), 
-                    ] else ...[
-                      Padding(
-                        padding: const EdgeInsets.only(left: 30, bottom: 20),
-                        child: Text("Hi, $displayName!", style: const TextStyle(color: Colors.blueAccent, fontSize: 16)),
-                      ),
-                      _drawerItem("P R O F I L E", () {}, textColor),
-                      const SizedBox(height: 20),
-                      _drawerItem("B O O K M A R K S", () {}, textColor),
-                      const SizedBox(height: 20),
-                      if (isAdmin) ...[
-                        _drawerItem("A D M I N    P A N E L", () {
-                          Navigator.pop(context);
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminDashboard()));
-                        }, textColor),
-                        const SizedBox(height: 20),
-                      ],
-                      _drawerItem("L O G O U T", () async {
-                        await FirebaseAuth.instance.signOut();
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          setState(() {});
-                        }
-                      }, textColor),
-                    ],
-                    const SizedBox(height: 20),
-                    _drawerItem("S E T T I N G S", () {}, textColor),
-                    const SizedBox(height: 20),
-                    _drawerItem("A B O U T", () {}, textColor),
-                    const SizedBox(height: 100),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 30, bottom: 40),
-                      child: Text("W  O  G   S  T  U  D  I  O  S", style: TextStyle(color: subTextColor, fontSize: 12, letterSpacing: 3)),
-                    )
-                  ],
-                ),
-              );
-            }
-          ),
-        ),
+        // ---------------------------------------------------------
+        // మ్యాజిక్ ఇక్కడే! సైడ్ మెనూ మొత్తం ఈ ఒక్క లైన్ తో వస్తుంది
+        // ---------------------------------------------------------
+        drawer: const AppDrawer(),
 
         body: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -291,7 +207,7 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: _joinJitsiLive, // ఫంక్షన్ ఇక్కడ కాల్ అవుతుంది
+                      onPressed: _joinJitsiLive, 
                       child: const Text("JOIN LIVE NOW", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2)),
                     ),
                   ),
