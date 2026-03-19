@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_database/firebase_database.dart'; // ఫైర్‌బేస్ రియల్ టైమ్ డేటాబేస్ (BGM కోసం)
 import 'admin_albums.dart'; 
-import 'upload_book.dart'; // మన కొత్త పుస్తకాల అప్‌లోడ్ పేజీ
+import 'admin_books.dart'; // మన కొత్త పుస్తకాల అప్‌లోడ్ పేజీ
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -106,10 +106,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminAlbums()));
                   }),
                   
-                  // 2. పుస్తకాలు (BOOKS SECTION) - కొత్తగా యాడ్ చేసింది
-                  _adminCard("పుస్తకాలు", Icons.menu_book, Colors.purpleAccent, () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const UploadBook()));
-                  }),
+                  // --- పుస్తకాల మేనేజ్‌మెంట్ బటన్ ---
+_adminCard("పుస్తకాలు", Icons.menu_book, Colors.purpleAccent, () {
+  Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminBooks()));
+}),
+
 
                   // 3. బైబిల్ మ్యూజిక్
                   _adminCard("బైబిల్ మ్యూజిక్", Icons.library_music, Colors.pinkAccent, () {
