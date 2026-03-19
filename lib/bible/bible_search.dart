@@ -52,64 +52,88 @@ class _BibleSearchState extends State<BibleSearch> {
   @override
   void initState() {
     super.initState();
-    _loadFilterData();
+    _resetFilters();
   }
 
-  void _loadFilterData() {
+  // సెర్చ్ బార్ ఖాళీగా ఉన్నప్పుడు అన్ని బుక్స్ చూపిస్తాం
+  void _resetFilters() {
+    books = ["All Books"];
     final bookElements = widget.document.findAllElements('BIBLEBOOK');
     books.addAll(bookElements.map((e) => e.getAttribute('bname')!).toList());
-  }
-
-  void _updateChaptersForBook(String bookName) {
+    
     chapters = ["All Chapters"];
+    selectedBookFilter = "All Books";
     selectedChapterFilter = "All Chapters";
-    if (bookName != "All Books") {
-      final book = widget.document.findAllElements('BIBLEBOOK').firstWhere(
-        (e) => e.getAttribute('bname') == bookName,
-      );
-      chapters.addAll(book.findAllElements('CHAPTER').map((e) => e.getAttribute('cnumber')!).toList());
-    }
-    _performSearch(); // ఫిల్టర్ మార్చగానే సెర్చ్ రిజల్ట్స్ అప్‌డేట్ అవుతాయి
   }
 
   void _performSearch() {
     searchResults.clear();
+    
+    // సెర్చ్ ఏమి లేకపోతే ఫిల్టర్స్ ని నార్మల్ గా ఉంచేస్తాం
     if (searchText.trim().isEmpty) {
+      _resetFilters();
       setState(() {});
       return;
     }
 
+    // 1. ముందుగా యాప్ మొత్తం సెర్చ్ చేసి ఎక్కడెక్కడ ఉందో లాగుతాం
+    List<Map<String, dynamic>> allMatches = [];
+    Set<String> booksWithMatches = {};
+
     final bookElements = widget.document.findAllElements('BIBLEBOOK');
     for (var book in bookElements) {
       String bName = book.getAttribute('bname')!;
-      
-      // బుక్ ఫిల్టర్ చెక్
-      if (selectedBookFilter != "All Books" && bName != selectedBookFilter) continue;
-
       final chapterElements = book.findAllElements('CHAPTER');
+      
       for (var chapter in chapterElements) {
         String cNum = chapter.getAttribute('cnumber')!;
-        
-        // చాప్టర్ ఫిల్టర్ చెక్
-        if (selectedChapterFilter != "All Chapters" && cNum != selectedChapterFilter) continue;
-
         final verses = chapter.findAllElements('VERS');
+        
         for (var verse in verses) {
           String vText = verse.innerText.trim();
-          String vNum = verse.getAttribute('vnumber')!;
-
-          // సెర్చ్ పదం ఉందో లేదో చెక్ చేస్తున్నాం
           if (vText.contains(searchText) || vText.toLowerCase().contains(searchText.toLowerCase())) {
-            searchResults.add({
+            allMatches.add({
               'book': bName,
               'chapter': cNum,
-              'verseNum': vNum,
+              'verseNum': verse.getAttribute('vnumber')!,
               'text': vText,
             });
+            booksWithMatches.add(bName); // వచనం దొరికిన బుక్ ని లిస్ట్ లో వేస్తాం
           }
         }
       }
     }
+
+    // 2. బుక్స్ డ్రాప్‌డౌన్ ని అప్‌డేట్ చేస్తాం (వచనాలు దొరికిన బుక్స్ మాత్రమే వస్తాయి)
+    books = ["All Books", ...booksWithMatches];
+    if (!books.contains(selectedBookFilter)) {
+      selectedBookFilter = "All Books"; // ఒకవేళ పాత ఫిల్టర్ ఇప్పుడు లేకపోతే All Books కి మార్చేస్తాం
+    }
+
+    // 3. చాప్టర్స్ డ్రాప్‌డౌన్ ని అప్‌డేట్ చేస్తాం (సెలెక్ట్ చేసిన బుక్ లో ఏ చాప్టర్స్ లో ఉందో అవే వస్తాయి)
+    Set<String> chaptersWithMatches = {};
+    for (var match in allMatches) {
+      if (selectedBookFilter == "All Books" || match['book'] == selectedBookFilter) {
+        chaptersWithMatches.add(match['chapter']);
+      }
+    }
+    
+    // చాప్టర్స్ ఆర్డర్ లో రావడం కోసం
+    List<String> sortedChapters = chaptersWithMatches.toList()
+      ..sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+    
+    chapters = ["All Chapters", ...sortedChapters];
+    if (!chapters.contains(selectedChapterFilter)) {
+      selectedChapterFilter = "All Chapters";
+    }
+
+    // 4. ఫైనల్ గా మనం సెలెక్ట్ చేసుకున్న ఫిల్టర్స్ ని బట్టి రిజల్ట్స్ చూపిస్తాం
+    searchResults = allMatches.where((match) {
+      bool bookMatch = selectedBookFilter == "All Books" || match['book'] == selectedBookFilter;
+      bool chapterMatch = selectedChapterFilter == "All Chapters" || match['chapter'] == selectedChapterFilter;
+      return bookMatch && chapterMatch;
+    }).toList();
+
     setState(() {});
   }
 
@@ -166,7 +190,7 @@ class _BibleSearchState extends State<BibleSearch> {
             ),
           ),
 
-          // బుక్ & చాప్టర్ ఫిల్టర్స్ (డ్రాప్‌డౌన్స్)
+          // బుక్ & చాప్టర్ ఫిల్టర్స్ (డైనమిక్ డ్రాప్‌డౌన్స్)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15.0),
             child: Row(
@@ -190,7 +214,9 @@ class _BibleSearchState extends State<BibleSearch> {
                       onChanged: (val) {
                         setState(() {
                           selectedBookFilter = val!;
-                          _updateChaptersForBook(val);
+                          // బుక్ మార్చగానే చాప్టర్ ఫిల్టర్ రీసెట్ చేసి మళ్ళీ సెర్చ్ చేస్తాం
+                          selectedChapterFilter = "All Chapters";
+                          _performSearch();
                         });
                       },
                     ),
@@ -244,7 +270,6 @@ class _BibleSearchState extends State<BibleSearch> {
 
                           return InkWell(
                             onTap: () {
-                              // వచనం మీద నొక్కగానే నేరుగా ఆ బుక్, చాప్టర్ తో మెయిన్ పేజీకి వెళ్తాం!
                               Navigator.pop(context, {
                                 'book': item['book'],
                                 'chapter': item['chapter'],
@@ -263,7 +288,7 @@ class _BibleSearchState extends State<BibleSearch> {
                                 children: [
                                   Text(
                                     "$bookInTelugu ${item['chapter']}:${item['verseNum']}",
-                                    style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                                    style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 14),
                                   ),
                                   const SizedBox(height: 5),
                                   Text(
