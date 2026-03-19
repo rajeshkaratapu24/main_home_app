@@ -23,8 +23,6 @@ dependencies:
   audioplayers: ^5.2.1
   google_sign_in: ^6.2.1
   flutter_widget_from_html: ^0.15.1
-  http: ^1.1.0
-
 
 dev_dependencies:
   flutter_test:
