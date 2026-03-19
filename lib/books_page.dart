@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // ఫైర్‌బేస్ కోసం ఇది ముఖ్యం
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'book_reader_page.dart'; // Direct import, folder ledu kabatti
 
 class BooksPage extends StatefulWidget {
   const BooksPage({super.key});
@@ -10,9 +11,6 @@ class BooksPage extends StatefulWidget {
 }
 
 class _BooksPageState extends State<BooksPage> {
-  final List<String> _categories = ["All", "Theology", "Devotional", "Bible Study", "Biographies"];
-  int _selectedCategoryIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     bool isLight = Theme.of(context).brightness == Brightness.light;
@@ -37,7 +35,6 @@ class _BooksPageState extends State<BooksPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-            // సర్చ్ బార్
             Container(
               height: 50,
               decoration: BoxDecoration(color: searchBoxColor, borderRadius: BorderRadius.circular(10)),
@@ -53,20 +50,15 @@ class _BooksPageState extends State<BooksPage> {
             ),
             const SizedBox(height: 20),
 
-            // ---------------------------------------------------------
-            // ఇక్కడ నుండే మ్యాజిక్ స్టార్ట్ అవుతుంది (STREAMBUILDER)
-            // ఇది ఫైర్‌బేస్ నుండి లైవ్ గా బుక్స్ ని తీసుకొస్తుంది
-            // ---------------------------------------------------------
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                // 'books' అనే కలెక్షన్ నుండి డేటా తెస్తున్నాం
                 stream: FirebaseFirestore.instance.collection('books').orderBy('timestamp', descending: true).snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator(color: Colors.purpleAccent));
                   }
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(child: Text("ప్రస్తుతానికి పుస్తకాలు లేవు", style: TextStyle(color: subTextColor)));
+                    return Center(child: Text("Books available lo levu", style: TextStyle(color: subTextColor)));
                   }
 
                   var books = snapshot.data!.docs;
@@ -80,16 +72,30 @@ class _BooksPageState extends State<BooksPage> {
                     ),
                     itemCount: books.length,
                     itemBuilder: (context, index) {
-                      // ఫైర్‌బేస్ లో ఉన్న డేటా రీడ్ చేస్తున్నాం
                       var bookData = books[index].data() as Map<String, dynamic>;
                       
-                      return _buildBookCard(
-                        title: bookData['title'] ?? 'No Title',
-                        author: bookData['author'] ?? 'Unknown',
-                        cover: bookData['coverUrl'] ?? '',
-                        rating: bookData['rating'] ?? 5,
-                        textColor: textColor,
-                        subTextColor: subTextColor,
+                      return GestureDetector(
+                        onTap: () {
+                          if (bookData['bookUrl'] != null && bookData['bookUrl'].isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BookReaderPage(
+                                  url: bookData['bookUrl'], 
+                                  title: bookData['title'] ?? 'Book',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: _buildBookCard(
+                          title: bookData['title'] ?? 'No Title',
+                          author: bookData['author'] ?? 'Unknown',
+                          cover: bookData['coverUrl'] ?? '',
+                          rating: bookData['rating'] ?? 5,
+                          textColor: textColor,
+                          subTextColor: subTextColor,
+                        ),
                       );
                     },
                   );
@@ -102,7 +108,6 @@ class _BooksPageState extends State<BooksPage> {
     );
   }
 
-  // బుక్ కార్డ్ డిజైన్ (లైవ్ డేటా తీసుకుంటుంది)
   Widget _buildBookCard({required String title, required String author, required String cover, required int rating, required Color textColor, required Color subTextColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +124,10 @@ class _BooksPageState extends State<BooksPage> {
                 cover,
                 fit: BoxFit.cover,
                 width: double.infinity,
-                errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[800], child: const Icon(Icons.book, color: Colors.white54)),
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey[800], 
+                  child: const Icon(Icons.book, color: Colors.white54)
+                ),
               ),
             ),
           ),
