@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_database/firebase_database.dart'; // ఫైర్‌బేస్ డేటాబేస్ ఇంపోర్ట్
+import 'package:firebase_database/firebase_database.dart'; // ఫైర్‌బేస్ రియల్ టైమ్ డేటాబేస్ (BGM కోసం)
 import 'admin_albums.dart'; 
+import 'upload_book.dart'; // మన కొత్త పుస్తకాల అప్‌లోడ్ పేజీ
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -12,12 +13,13 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
 
-  // బైబిల్ BGM లింక్ మార్చడానికి డైలాగ్ బాక్స్
+  // ---------------------------------------------------------
+  // బైబిల్ BGM లింక్ మార్చడానికి పాత డైలాగ్ బాక్స్ లాజిక్
+  // ---------------------------------------------------------
   Future<void> _showBgmDialog() async {
     TextEditingController bgmController = TextEditingController();
     final ref = FirebaseDatabase.instance.ref("admin_settings/bible_bgm");
     
-    // డైలాగ్ ఓపెన్ అవ్వగానే పాత లింక్ ఏమైనా ఉంటే చూపిస్తుంది
     final snapshot = await ref.get();
     if (snapshot.exists) {
       bgmController.text = snapshot.value.toString();
@@ -48,7 +50,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
             TextButton(
               onPressed: () async {
-                // ఫైర్‌బేస్ లో సేవ్ చేస్తున్నాం
                 await ref.set(bgmController.text.trim());
                 if (context.mounted) {
                   Navigator.pop(context);
@@ -90,30 +91,43 @@ class _AdminDashboardState extends State<AdminDashboard> {
               style: TextStyle(color: Colors.white54, letterSpacing: 2, fontSize: 12, fontWeight: FontWeight.bold)
             ),
             const SizedBox(height: 25),
+            
+            // ---------------------------------------------------------
+            // అడ్మిన్ కార్డుల గ్రిడ్ (ఇప్పుడు 6 కార్డులు ఉంటాయి)
+            // ---------------------------------------------------------
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
                 children: [
-                  // --- ఆల్బమ్స్ అండ్ సాంగ్స్ బటన్ ---
+                  // 1. ఆల్బమ్స్ & పాటలు
                   _adminCard("ఆల్బమ్స్ & పాటలు", Icons.album, Colors.blueAccent, () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminAlbums()));
                   }),
                   
-                  // --- బైబిల్ మ్యూజిక్ కంట్రోల్ బటన్ (కొత్తది) ---
+                  // 2. పుస్తకాలు (BOOKS SECTION) - కొత్తగా యాడ్ చేసింది
+                  _adminCard("పుస్తకాలు", Icons.menu_book, Colors.purpleAccent, () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const UploadBook()));
+                  }),
+
+                  // 3. బైబిల్ మ్యూజిక్
                   _adminCard("బైబిల్ మ్యూజిక్", Icons.library_music, Colors.pinkAccent, () {
                     _showBgmDialog();
                   }),
 
-                  // --- మిగతా బటన్స్ ---
+                  // 4. ఆడియో సందేశాలు
                   _adminCard("ఆడియో సందేశాలు", Icons.mic, Colors.orangeAccent, () {
-                    // ఆడియో మెసేజెస్ కోసం ఫ్యూచర్ లో రాద్దాం
+                    // ఆడియో మెసేజెస్ కోసం ఫ్యూచర్ లో ఇక్కడ రాద్దాం
                   }),
-                  _adminCard("నేటి ధ్యానం", Icons.menu_book, Colors.greenAccent, () {
+
+                  // 5. నేటి ధ్యానం
+                  _adminCard("నేటి ధ్యానం", Icons.wb_sunny_outlined, Colors.greenAccent, () {
                     // డైలీ వాక్యం అప్‌డేట్
                   }),
-                  _adminCard("యూజర్స్", Icons.people, Colors.purpleAccent, () {
+
+                  // 6. యూజర్స్
+                  _adminCard("యూజర్స్", Icons.people, Colors.tealAccent, () {
                     // రిజిస్టర్ అయిన యూజర్స్ లిస్ట్
                   }),
                 ],
@@ -125,10 +139,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // డార్క్ థీమ్ అడ్మిన్ కార్డ్ డిజైన్ (బటన్స్ కోసం)
+  // డార్క్ థీమ్ అడ్మిన్ కార్డ్ డిజైన్ (నీ పాత స్టైల్ లోనే ఉంచాను)
   Widget _adminCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF1A1A1A),
