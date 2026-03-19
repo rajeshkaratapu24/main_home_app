@@ -1,259 +1,232 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class BooksPage extends StatelessWidget {
+class BooksPage extends StatefulWidget {
   const BooksPage({super.key});
 
   @override
+  State<BooksPage> createState() => _BooksPageState();
+}
+
+class _BooksPageState extends State<BooksPage> {
+  // మన యాప్ కి తగ్గ క్యాటగిరీస్
+  final List<String> _categories = ["All", "Theology", "Devotional", "Bible Study", "Biographies", "History", "Kids"];
+  int _selectedCategoryIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
-    // ఇమేజ్ లో ఉన్న సాఫ్ట్ గ్రే బ్యాక్‌గ్రౌండ్ కలర్
-    const Color bgColor = Color(0xFFEDF0F3);
+    // థీమ్ ని బట్టి కలర్స్ మారుతాయి (Light / Dark)
+    bool isLight = Theme.of(context).brightness == Brightness.light;
+    Color bgColor = isLight ? Colors.white : const Color(0xFF121212); // డీప్ డార్క్ థీమ్
+    Color textColor = isLight ? Colors.black : Colors.white;
+    Color subTextColor = isLight ? Colors.black54 : Colors.white54;
+    Color searchBoxColor = isLight ? Colors.grey[200]! : const Color(0xFF2A2A2A);
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              // ------------------------------------
-              // 1. NEUMORPHIC HEADER (SEARCH & MENU)
-              // ------------------------------------
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // సర్చ్ బార్ (ఇమేజ్ లో 'Backs' అని ఉంది, బహుశా AI typo)
-                  Expanded(
-                    child: Container(
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius: BorderRadius.circular(30),
-                        // Neumorphic షాడోస్
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.08), offset: const Offset(4, 4), blurRadius: 10),
-                          const BoxShadow(color: Colors.white, offset: Offset(-4, -4), blurRadius: 10),
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Backs", // EXACT TEXT from image
-                            style: GoogleFonts.ubuntu(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
-                          ),
-                          const Spacer(),
-                          Icon(Icons.search, color: Colors.black.withOpacity(0.5), size: 24),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  // మెనూ బటన్ (రౌండ్ Neumorphic)
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.08), offset: const Offset(4, 4), blurRadius: 10),
-                        const BoxShadow(color: Colors.white, offset: Offset(-4, -4), blurRadius: 10),
-                      ],
-                    ),
-                    child: const Icon(Icons.menu, color: Colors.black, size: 28),
-                  ),
-                ],
+      appBar: AppBar(
+        backgroundColor: bgColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: textColor, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          "Browse",
+          style: GoogleFonts.ubuntu(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ------------------------------------
+            // 1. SEARCH BAR (అచ్చం ఇమేజ్ లో లాగా)
+            // ------------------------------------
+            Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: searchBoxColor,
+                borderRadius: BorderRadius.circular(10),
               ),
-              
-              const SizedBox(height: 30),
-
-              // ------------------------------------
-              // 2. BOOKS GRID VIEW
-              // ------------------------------------
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3, 
-                  crossAxisSpacing: 15, 
-                  mainAxisSpacing: 15, 
-                  childAspectRatio: 0.65 // కార్డ్స్ పొడవుగా ఉండటానికి
+              child: TextField(
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  hintText: "Search books, authors, genres...",
+                  hintStyle: TextStyle(color: subTextColor, fontSize: 15),
+                  prefixIcon: Icon(Icons.search, color: subTextColor),
+                  suffixIcon: Icon(Icons.mic, color: subTextColor),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 15),
                 ),
-                itemCount: _bookData.length,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ------------------------------------
+            // 2. CATEGORIES (Horizontal Scroll)
+            // ------------------------------------
+            SizedBox(
+              height: 30,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _categories.length,
                 itemBuilder: (context, index) {
-                  return _buildBookCard(context, _bookData[index], bgColor);
+                  bool isSelected = index == _selectedCategoryIndex;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedCategoryIndex = index;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 20.0),
+                      child: Text(
+                        _categories[index],
+                        style: GoogleFonts.ubuntu(
+                          color: isSelected ? textColor : subTextColor,
+                          fontSize: 16,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  );
                 },
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 25),
+
+            // ------------------------------------
+            // 3. BOOKS GRID VIEW
+            // ------------------------------------
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3, 
+                crossAxisSpacing: 15, 
+                mainAxisSpacing: 20, 
+                childAspectRatio: 0.52 // ఇమేజ్ పెద్దగా, కింద టెక్స్ట్ కి స్పేస్
+              ),
+              itemCount: _bookData.length,
+              itemBuilder: (context, index) {
+                var book = _bookData[index];
+                return _buildBookCard(book, textColor, subTextColor);
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );
   }
 
-  // ఒక్క బుక్ కార్డ్ డిజైన్ చేసే ఫంక్షన్
-  Widget _buildBookCard(BuildContext context, Map<String, dynamic> book, Color bgColor) {
-    return Container(
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.08), offset: const Offset(4, 4), blurRadius: 10),
-          const BoxShadow(color: Colors.white, offset: Offset(-4, -4), blurRadius: 10),
-        ],
-      ),
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // బుక్ కవర్ (ఇమేజ్ లో ఉన్నట్లు క్లీన్ గా)
-          Expanded(
+  // బుక్ కార్డ్ డిజైన్
+  Widget _buildBookCard(Map<String, dynamic> book, Color textColor, Color subTextColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. బుక్ కవర్
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
+                )
+              ]
+            ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               child: Image.network(
                 book['cover'],
                 fit: BoxFit.cover,
                 width: double.infinity,
-                errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[300], child: const Icon(Icons.book, color: Colors.grey, size: 30)),
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey[800],
+                  child: const Icon(Icons.book, color: Colors.white54, size: 40),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          // బుక్ పేరు
-          Text(
-            book['title'],
-            style: GoogleFonts.ubuntu(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          // రచయిత పేరు (కొన్ని బుక్స్ కి లేదు)
-          if (book['author'] != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
+        ),
+        const SizedBox(height: 8),
+        
+        // 2. బుక్ టైటిల్
+        Text(
+          book['title'],
+          style: GoogleFonts.ubuntu(color: textColor, fontSize: 14, fontWeight: FontWeight.bold, height: 1.2),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 3),
+        
+        // 3. రచయిత & రేటింగ్ (Stars)
+        Row(
+          children: [
+            Expanded(
               child: Text(
                 book['author'],
-                style: GoogleFonts.ubuntu(color: Colors.black.withOpacity(0.5), fontSize: 10),
+                style: TextStyle(color: subTextColor, fontSize: 12),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-          const Spacer(),
-          // ఇమేజ్ లో ఉన్నట్లు డిఫరెంట్ ఐకాన్స్ (Stars, Heart etc.)
-          _buildIconRow(book),
-        ],
-      ),
+            if (book['rating'] > 0) ...[
+              const Icon(Icons.star, color: Colors.amber, size: 12),
+              const Icon(Icons.star, color: Colors.amber, size: 12),
+              const Icon(Icons.star, color: Colors.amber, size: 12),
+            ]
+          ],
+        ),
+      ],
     );
   }
 
-  // ప్రతి బుక్ కి డిఫరెంట్ ఐకాన్స్ పెట్టే లాజిక్ (EXACT replica కోసం)
-  Widget _buildIconRow(Map<String, dynamic> book) {
-    if (book['type'] == 'home_progress') {
-      return Column(
-        children: [
-          LinearProgressIndicator(value: 0.5, color: Colors.blueAccent, backgroundColor: Colors.black12, minHeight: 2),
-          const SizedBox(height: 5),
-          const Icon(Icons.home_outlined, color: Colors.black, size: 16),
-        ],
-      );
-    } else if (book['type'] == 'book_progress') {
-      return Column(
-        children: [
-          LinearProgressIndicator(value: 0.7, color: Colors.blueAccent, backgroundColor: Colors.black12, minHeight: 2),
-          const SizedBox(height: 5),
-          const Icon(Icons.bookmark_outline_rounded, color: Colors.black, size: 16),
-        ],
-      );
-    } else if (book['type'] == 'just_home') {
-      return const Icon(Icons.home_outlined, color: Colors.black, size: 16);
-    } else if (book['type'] == 'stars') {
-      return Row(children: List.generate(4, (index) => const Icon(Icons.star, color: Colors.orangeAccent, size: 12)));
-    } else if (book['type'] == 'stars_home') {
-      return Row(children: List.generate(4, (index) => const Icon(Icons.star, color: Colors.orangeAccent, size: 12)));
-    } else if (book['type'] == 'arrow_up') {
-      return const Center(child: Icon(Icons.arrow_drop_up_rounded, color: Colors.black, size: 24));
-    } else if (book['type'] == 'heart') {
-      return const Center(child: Icon(Icons.favorite_border, color: Colors.black, size: 16));
-    } else {
-      return const SizedBox(height: 16); // Default empty space
-    }
-  }
-
   // ---------------------------------------------------------
-  // DUMMY DATA: ఇమేజ్ లో ఉన్న వివరాలతో EXACT గా క్రియేట్ చేశాను
+  // DUMMY DATA (మన యాప్ కి తగ్గట్టుగా డమ్మీ డేటా)
   // ---------------------------------------------------------
   static const List<Map<String, dynamic>> _bookData = [
     {
-      'title': 'Greet Gatsby', // Exact typo from image
-      'author': 'F. Scott Fitzgerald',
-      'cover': 'https://upload.wikimedia.org/wikipedia/commons/7/7a/The_Great_Gatsby_Cover_1925_Retouched.jpg',
-      'type': 'none'
-    },
-    {
-      'title': 'The Sartires', // Exact typo from image
-      'author': 'Merle Fitzgerald',
-      'cover': 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=300', // Dummy cover resembling image
-      'type': 'none'
-    },
-    {
-      'title': 'Cypley', // Exact typo from image
-      'author': null,
-      'cover': 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=300',
-      'type': 'home_progress' // Image style logic
-    },
-    {
-      'title': 'To Kill a Mockingbird',
-      'author': 'Harpy Lee', // Exact typo from image
-      'cover': 'https://upload.wikimedia.org/wikipedia/commons/4/4f/To_Kill_a_Mockingbird_%28first_edition_cover%29.jpg',
-      'type': 'book_progress'
-    },
-    {
-      'title': 'Greet Gatsby', // Repeat from image
-      'author': 'Eattyera',
+      'title': 'The Great Devotion',
+      'author': 'Raja Talluri',
       'cover': 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=300',
-      'type': 'none'
+      'rating': 4
     },
     {
-      'title': 'Syinp Hark', // Exact typo from image
-      'author': 'Ouges',
+      'title': 'Knowing God',
+      'author': 'J.I. Packer',
       'cover': 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=300',
-      'type': 'just_home'
+      'rating': 0 // రేటింగ్ లేకపోతే స్టార్స్ రావు
     },
     {
-      'title': 'Beit Orovel', // Exact typo from image
-      'author': 'Regga',
+      'title': 'Spiritual Leadership',
+      'author': 'J. Oswald',
       'cover': 'https://images.unsplash.com/photo-1589998059171-988d887df646?q=80&w=300',
-      'type': 'just_home'
+      'rating': 5
     },
     {
-      'title': 'Harpy Lee', // Title logic from image
-      'author': null,
+      'title': 'Mere Christianity',
+      'author': 'C.S. Lewis',
       'cover': 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=300',
-      'type': 'stars'
+      'rating': 4
     },
     {
-      'title': 'Ceekafilist', // Exact typo from image
-      'author': 'Cortsh',
+      'title': 'The Pursuit of God',
+      'author': 'A.W. Tozer',
       'cover': 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=300',
-      'type': 'heart'
+      'rating': 0
     },
     {
-      'title': 'Punering', // Exact typo from image
-      'author': 'Soricty',
+      'title': 'Grace Abounding',
+      'author': 'John Bunyan',
       'cover': 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=300',
-      'type': 'stars_home'
-    },
-    {
-      'title': 'Margstard', // Exact typo from image
-      'author': 'Vhiten',
-      'cover': 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=300',
-      'type': 'arrow_up'
-    },
-    {
-      'title': 'Rartenupe', // Exact typo from image
-      'author': 'Sanize',
-      'cover': 'https://images.unsplash.com/photo-1510172951991-859a697113c1?q=80&w=300',
-      'type': 'heart'
+      'rating': 5
     },
   ];
 }
