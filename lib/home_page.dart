@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
   void _joinJitsiLive() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const JitsiLivePage()),
+      MaterialPageRoute(builder: (context) =>  JitsiLivePage()),
     );
   }
 
