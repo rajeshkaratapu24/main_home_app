@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'hands_dashboard.dart'; 
 import 'head_notes.dart';
+import 'heart_section.dart';
 
 
 class ProjectHMain extends StatelessWidget {
