@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:http/http.dart' as http; // కొత్తగా ఇది యాడ్ చేశాం
+import 'package:http/http.dart' as http;
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class BookReaderPage extends StatefulWidget {
   final String url;
@@ -13,57 +14,56 @@ class BookReaderPage extends StatefulWidget {
 }
 
 class _BookReaderPageState extends State<BookReaderPage> {
-  late final WebViewController _controller;
+  String _htmlContent = "";
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0xFFFFFFFF));
-    
-    // డైరెక్ట్ గా లోడ్ చేయకుండా, డేటాని తెచ్చుకుని లోడ్ చేస్తాం
-    _loadBookContent();
+    _fetchBookData();
   }
 
-  // గిట్‌హబ్ కోడ్‌ని వెబ్‌సైట్ లాగా మార్చే ఫంక్షన్
-  Future<void> _loadBookContent() async {
+  Future<void> _fetchBookData() async {
     try {
       final response = await http.get(Uri.parse(widget.url));
       if (response.statusCode == 200) {
-        // కోడ్‌ని HTML లాగా వెబ్‌వ్యూలోకి పంపిస్తున్నాం
-        await _controller.loadHtmlString(response.body);
-      } else {
-        throw Exception("Failed to load book");
-      }
-    } catch (e) {
-      debugPrint("Error: $e");
-    } finally {
-      if (mounted) {
         setState(() {
+          _htmlContent = response.body;
           _isLoading = false;
         });
       }
+    } catch (e) {
+      debugPrint("Error: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5DC), // సెపియా/డార్క్ థీమ్
       appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(color: Colors.white, fontSize: 18)),
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(widget.title, style: GoogleFonts.ubuntu(fontSize: 18, fontWeight: FontWeight.bold)),
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
+        elevation: 0,
       ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator(color: Colors.purpleAccent)),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.purpleAccent))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+              child: HtmlWidget(
+                _htmlContent,
+                textStyle: GoogleFonts.notoSansTelugu(
+                  fontSize: 18, 
+                  height: 1.6, // లైన్ల మధ్య గ్యాప్ (చదవడానికి సులభంగా ఉంటుంది)
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+                // HTML లో ఉన్న ఇమేజెస్ ని కూడా ఇది హ్యాండిల్ చేస్తుంది
+                onLoadingBuilder: (context, element, loadingProgress) => const CircularProgressIndicator(),
+              ),
+            ),
     );
   }
 }
