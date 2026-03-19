@@ -5,7 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:audioplayers/audioplayers.dart'; 
 import 'package:firebase_database/firebase_database.dart'; 
-import '../bible_search.dart'; // పాత్ సరిచూసుకో బ్రో
+import 'bible_search.dart';
+ // పాత్ సరిచూసుకో బ్రో
 
 class BibleHome extends StatefulWidget {
   const BibleHome({super.key});
