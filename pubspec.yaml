@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Ivi thappakunda undali:
   xml: ^6.5.0
   share_plus: ^10.1.4
@@ -18,11 +18,10 @@ dependencies:
   cloud_firestore: ^5.0.0
   firebase_auth: ^5.1.0
   firebase_storage: ^12.0.0
-  firebase_database: ^11.0.1 # <-- కొత్తగా యాడ్ చేసిన డేటాబేస్ ప్యాకేజీ
+  firebase_database: ^11.0.1 
   http: ^1.1.0
   audioplayers: ^5.2.1
   google_sign_in: ^6.2.1
-  http: ^1.1.0
   webview_flutter: ^4.4.2
 
 dev_dependencies:
