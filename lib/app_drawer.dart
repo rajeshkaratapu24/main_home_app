@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart'; 
 import 'login_page.dart';
 import 'admin/admin_dashboard.dart';
+import '../pages/books_page.dart';
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
@@ -89,11 +90,20 @@ class _AppDrawerState extends State<AppDrawer> {
 
           const SizedBox(height: 10),
 
-          // --- MAIN MENU ITEMS ---
-          _buildDrawerItem("B O O K S", Icons.menu_book, Colors.purpleAccent, textColor, () {
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Books Page Coming Soon...")));
-          }),
+          // app_drawer.dart లో ఈ సెక్షన్ ని అప్‌డేట్ చెయ్
+
+// ... మిగతా కోడ్
+
+// --- MAIN MENU ITEMS ---
+_buildDrawerItem("B O O K S", Icons.menu_book, Colors.purpleAccent, textColor, () {
+  // డ్రాయర్ ని క్లోజ్ చేసి...
+  Navigator.pop(context);
+  // సాఫ్ట్ UI ఉన్న కొత్త Books పేజీకి వెళ్తాం
+  Navigator.push(context, MaterialPageRoute(builder: (context) => const BooksPage()));
+}),
+
+// AUDIO MESSAGES ... మిగతా కోడ్
+
           
           _buildDrawerItem("AUDIO MESSAGES", Icons.headset, Colors.orangeAccent, textColor, () {
             Navigator.pop(context);
