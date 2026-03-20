@@ -1,4 +1,4 @@
-import 'dart:convert'; // JSON కోసం
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
@@ -31,21 +31,21 @@ class _BibleHomeState extends State<BibleHome> {
   final Map<String, String> teluguBooks = {
     "Genesis": "ఆదికాండము", "Exodus": "నిర్గమకాండము", "Leviticus": "లేవీయకాండము",
     "Numbers": "సంఖ్యాకాండము", "Deuteronomy": "ద్వితీయోపదేశకాండము", "Joshua": "యెహోషువ",
-    "Judges": "న్యాయาధిపతులు", "Ruth": "రూతు", "1 Samuel": "1 సమూయేలు",
+    "Judges": "న్యాయాధిపతులు", "Ruth": "రూతు", "1 Samuel": "1 సమూయేలు",
     "2 Samuel": "2 సమూయేలు", "1 Kings": "1 రాజులు", "2 Kings": "2 రాజులు",
     "1 Chronicles": "1 దినవృత్తాంతములు", "2 Chronicles": "2 దినవృత్తాంతములు",
-    "Ezra": "ఎజ్రా", "Nehemiah": "నెహెమ్యా", "Esther": "ఎస్తేరు",
+    "Ezra": "ఎజ్రా", "Nehemiah": "నెహెమ్యా", "Esther": "エస్తేరు",
     "Job": "యోబు", "Psalm": "కీర్తనలు", "Psalms": "కీర్తనలు", 
     "Proverbs": "సామెతలు", "Ecclesiastes": "ప్రసంగి", "Song of Solomon": "పరమగీతము",
     "Isaiah": "యెషయా", "Jeremiah": "యిర్మీయా", "Lamentations": "విలాపవాక్యములు",
-    "Ezekiel": "యెహెజ్కేలు", "Daniel": "దానియేలు", "Hosea": "ホషేయ",
+    "Ezekiel": "యెహెజ్కేలు", "Daniel": "దానియేలు", "Hosea": "హోషేయ",
     "Joel": "యోవేలు", "Amos": "ఆమోసు", "Obadiah": "ఓబద్యా",
     "Jonah": "యోనా", "Micah": "మీకా", "Nahum": "నహూము",
     "Habakkuk": "హబక్కుకు", "Zephaniah": "జెఫన్యా", "Haggai": "హగ్గయి",
     "Zechariah": "జెకర్యా", "Malachi": "మలాకీ", "Matthew": "మత్తయి",
     "Mark": "మార్కు", "Luke": "లూకా", "John": "యోహాను",
     "Acts": "అపొస్తలుల కార్యములు", "Romans": "రోమీయులకు", "1 Corinthians": "1 కొరింథీయులకు",
-    "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "ఎఫెసీయులకు",
+    "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "エఫెసీయులకు",
     "Philippians": "ఫిలిప్పీయులకు", "Colossians": "కొలొస్సయులకు", "1 Thessalonians": "1 థెస్సలొనీకయులకు",
     "2 Thessalonians": "2 థెస్సలొనీకయులకు", "1 Timothy": "1 తిమోతికి", "2 Timothy": "2 తిమోతికి",
     "Titus": "తీతుకు", "Philemon": "ఫిలేమోనుకు", "Hebrews": "హెబ్రీయులకు",
@@ -139,10 +139,10 @@ class _BibleHomeState extends State<BibleHome> {
       MaterialPageRoute(
         builder: (context) => BibleReadingPage(
           bookName: teluguBooks[selectedBook] ?? selectedBook,
+          englishBookName: selectedBook,
           chapterNumber: selectedChapter,
           verses: verses,
           initialScrollIndex: verseIndex,
-          englishBookName: selectedBook, // ఇంగ్లీష్ పేరు కూడా పంపిస్తున్నాం
         ),
       ),
     );
@@ -312,12 +312,9 @@ class _BibleHomeState extends State<BibleHome> {
   }
 }
 
-// =========================================================================
-// రీడింగ్ పేజీ - ఇక్కడే మార్పులు జరిగాయి
-// =========================================================================
 class BibleReadingPage extends StatefulWidget {
   final String bookName;
-  final String englishBookName; // క్రాస్ రిఫరెన్స్ కోసం
+  final String englishBookName;
   final String chapterNumber;
   final List<Map<String, String>> verses;
   final int initialScrollIndex;
@@ -337,28 +334,27 @@ class BibleReadingPage extends StatefulWidget {
 
 class _BibleReadingPageState extends State<BibleReadingPage> {
   Set<int> selectedVerseIndices = {};
-  Map<String, dynamic> _tskData = {}; // క్రాస్ రిఫరెన్స్ డేటా
+  Map<String, List<String>> _tskData = {}; // టెక్స్ట్ డేటా కోసం మ్యాప్
 
-  // ఇంగ్లీష్ పేరు నుండి TSK షార్ట్ కోడ్ మ్యాపింగ్
   final Map<String, String> tskBookCodes = {
-    "Genesis": "Gen", "Exodus": "Exo", "Leviticus": "Lev", "Numbers": "Num",
-    "Deuteronomy": "Deu", "Joshua": "Jos", "Judges": "Jdg", "Ruth": "Rut",
-    "1 Samuel": "1Sa", "2 Samuel": "2Sa", "1 Kings": "1Ki", "2 Kings": "2Ki",
-    "1 Chronicles": "1Ch", "2 Chronicles": "2Ch", "Ezra": "Ezr", "Nehemiah": "Neh",
-    "Esther": "Est", "Job": "Job", "Psalm": "Psa", "Psalms": "Psa",
-    "Proverbs": "Pro", "Ecclesiastes": "Ecc", "Song of Solomon": "Sng",
-    "Isaiah": "Isa", "Jeremiah": "Jer", "Lamentations": "Lam", "Ezekiel": "Eze",
-    "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joe", "Amos": "Amo",
-    "Obadiah": "Oba", "Jonah": "Jon", "Micah": "Mic", "Nahum": "Nah",
-    "Habakkuk": "Hab", "Zephaniah": "Zep", "Haggai": "Hag", "Zechariah": "Zec",
-    "Malachi": "Mal", "Matthew": "Mat", "Mark": "Mar", "Luke": "Luk",
-    "John": "Joh", "Acts": "Act", "Romans": "Rom", "1 Corinthians": "1Co",
-    "2 Corinthians": "2Co", "Galatians": "Gal", "Ephesians": "Eph",
-    "Philippians": "Phi", "Colossians": "Col", "1 Thessalonians": "1Th",
-    "2 Thessalonians": "2Th", "1 Timothy": "1Ti", "2 Timothy": "2Ti",
-    "Titus": "Tit", "Philemon": "Phm", "Hebrews": "Heb", "James": "Jam",
-    "1 Peter": "1Pe", "2 Peter": "2Pe", "1 John": "1Jo", "2 John": "2Jo",
-    "3 John": "3Jo", "Jude": "Jud", "Revelation": "Rev",
+    "Genesis": "Gen", "Exodus": "Exod", "Leviticus": "Lev", "Numbers": "Num",
+    "Deuteronomy": "Deut", "Joshua": "Josh", "Judges": "Judg", "Ruth": "Ruth",
+    "1 Samuel": "1Sam", "2 Samuel": "2Sam", "1 Kings": "1Kgs", "2 Kings": "2Kgs",
+    "1 Chronicles": "1Chr", "2 Chronicles": "2Chr", "Ezra": "Ezra", "Nehemiah": "Neh",
+    "Esther": "Esth", "Job": "Job", "Psalm": "Ps", "Psalms": "Ps",
+    "Proverbs": "Prov", "Ecclesiastes": "Eccl", "Song of Solomon": "Song",
+    "Isaiah": "Isa", "Jeremiah": "Jer", "Lamentations": "Lam", "Ezekiel": "Ezek",
+    "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joel", "Amos": "Amos",
+    "Obadiah": "Obad", "Jonah": "Jonah", "Micah": "Mic", "Nahum": "Nah",
+    "Habakkuk": "Hab", "Zephaniah": "Zeph", "Haggai": "Hag", "Zechariah": "Zech",
+    "Malachi": "Mal", "Matthew": "Matt", "Mark": "Mark", "Luke": "Luke",
+    "John": "John", "Acts": "Acts", "Romans": "Rom", "1 Corinthians": "1Cor",
+    "2 Corinthians": "2Cor", "Galatians": "Gal", "Ephesians": "Eph",
+    "Philippians": "Phil", "Colossians": "Col", "1 Thessalonians": "1Thess",
+    "2 Thessalonians": "2Thess", "1 Timothy": "1Tim", "2 Timothy": "2Tim",
+    "Titus": "Titus", "Philemon": "Phlm", "Hebrews": "Heb", "James": "Jas",
+    "1 Peter": "1Pet", "2 Peter": "2Pet", "1 John": "1John", "2 John": "2John",
+    "3 John": "3John", "Jude": "Jude", "Revelation": "Rev",
   };
 
   @override
@@ -367,23 +363,31 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     _loadTSK();
   }
 
-  // TSK JSON డేటా లోడ్ చేయడం
   Future<void> _loadTSK() async {
     try {
-      final String response = await rootBundle.loadString('assets/tsk.json');
-      setState(() {
-        _tskData = json.decode(response);
-      });
+      final String data = await rootBundle.loadString('assets/tsk.txt');
+      final lines = data.split('\n');
+      Map<String, List<String>> tempTSK = {};
+      for (var line in lines) {
+        if (line.trim().isEmpty || line.startsWith('From')) continue;
+        final parts = line.split('\t'); 
+        if (parts.length >= 2) {
+          String fromVerse = parts[0].trim();
+          String toVerse = parts[1].trim();
+          if (!tempTSK.containsKey(fromVerse)) tempTSK[fromVerse] = [];
+          tempTSK[fromVerse]!.add(toVerse);
+        }
+      }
+      setState(() => _tskData = tempTSK);
     } catch (e) {
       debugPrint("TSK Error: $e");
     }
   }
 
-  // రిఫరెన్స్ బాక్స్ చూపించే ఫంక్షన్
   void _showReferences(String verseNum) {
     String bookCode = tskBookCodes[widget.englishBookName] ?? widget.englishBookName;
     String key = "$bookCode.${widget.chapterNumber}.$verseNum";
-    List<dynamic> refs = _tskData[key] ?? [];
+    List<String> refs = _tskData[key] ?? [];
 
     showModalBottomSheet(
       context: context,
@@ -403,7 +407,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
                     itemCount: refs.length,
                     itemBuilder: (context, i) => ListTile(
                       leading: const Icon(Icons.link, color: Colors.blueAccent, size: 18),
-                      title: Text(refs[i].toString(), style: const TextStyle(color: Colors.white70)),
+                      title: Text(refs[i], style: const TextStyle(color: Colors.white70)),
                     ),
                   ),
             ),
@@ -456,7 +460,6 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
                   isSelected ? selectedVerseIndices.remove(index) : selectedVerseIndices.add(index);
                 });
               } else {
-                // సెలెక్షన్ మోడ్ లో లేనప్పుడు నొక్కితే రిఫరెన్సులు చూపిస్తుంది
                 _showReferences(widget.verses[index]['num']!);
               }
             },
@@ -485,8 +488,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
                       ),
                     ),
                   ),
-                  // రిఫరెన్స్ ఐకాన్
-                  Icon(Icons.auto_awesome_motion, color: Colors.white12, size: 16),
+                  const Icon(Icons.auto_awesome_motion, color: Colors.white12, size: 16),
                 ],
               ),
             ),
