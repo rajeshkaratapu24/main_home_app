@@ -282,22 +282,42 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
   }
 
   // ఇదే బ్రో ఫైల్ ని లోపలికి లోడ్ చేసే అసలైన ఫంక్షన్
-  Future<void> _loadTSK() async {
+ Future<void> _loadTSK() async {
     try {
       final String data = await rootBundle.loadString('assets/tsk.txt');
+      // లైన్ బై లైన్ విడదీస్తున్నాం
       final lines = data.split(RegExp(r'\r?\n'));
+      
       Map<String, List<String>> tempTSK = {};
+      
       for (var line in lines) {
-        String trimmedLine = line.trim();
-        if (trimmedLine.isEmpty || trimmedLine.startsWith('From')) continue;
-        final parts = trimmedLine.split(RegExp(r'\s+')); 
+        // 1. కంటికి కనిపించని చెత్త అక్షరాలను (BOM, Control chars) క్లీన్ చేస్తున్నాం
+        String cleanLine = line.replaceAll(RegExp(r'[^\x20-\x7E\t]'), '').trim();
+        
+        if (cleanLine.isEmpty || cleanLine.startsWith('From') || cleanLine.startsWith('#')) continue;
+        
+        // 2. ట్యాబ్ (\t) లేదా ఎన్ని స్పేస్ లు ఉన్నా విడదీసేలా Regex
+        final parts = cleanLine.split(RegExp(r'\t|\s+')); 
+        
         if (parts.length >= 2) {
-          String fromVerse = parts[0].trim();
-          String toVerse = parts[1].trim();
-          if (!tempTSK.containsKey(fromVerse)) tempTSK[fromVerse] = [];
+          String fromVerse = parts[0].trim(); // ఉదా: Gen.1.1
+          String toVerse = parts[1].trim();   // ఉదా: 1John.1.1
+          
+          if (!tempTSK.containsKey(fromVerse)) {
+            tempTSK[fromVerse] = [];
+          }
           tempTSK[fromVerse]!.add(toVerse);
         }
       }
+
+      setState(() {
+        _tskData = tempTSK;
+      });
+      debugPrint("TSK Loaded: ${tempTSK.length} keys found");
+    } catch (e) {
+      debugPrint("TSK Error: $e");
+    }
+  }
       setState(() => _tskData = tempTSK);
     } catch (e) {
       debugPrint("TSK Error: $e");
