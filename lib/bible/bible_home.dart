@@ -19,7 +19,6 @@ class _BibleHomeState extends State<BibleHome> {
   XmlDocument? _document;
   String selectedBook = "Genesis";
   String selectedChapter = "1";
-  
   List<String> books = [];
   List<String> chapters = [];
   List<Map<String, String>> verses = [];
@@ -34,7 +33,7 @@ class _BibleHomeState extends State<BibleHome> {
     "Judges": "న్యాయాధిపతులు", "Ruth": "రూతు", "1 Samuel": "1 సమూయేలు",
     "2 Samuel": "2 సమూయేలు", "1 Kings": "1 రాజులు", "2 Kings": "2 రాజులు",
     "1 Chronicles": "1 దినవృత్తాంతములు", "2 Chronicles": "2 దినవృత్తాంతములు",
-    "Ezra": "ఎజ్రా", "Nehemiah": "నెహెమ్యా", "Esther": "エస్తేరు",
+    "Ezra": "ఎజ్రా", "Nehemiah": "నెహెమ్యా", "Esther": "ఎస్తేరు",
     "Job": "యోబు", "Psalm": "కీర్తనలు", "Psalms": "కీర్తనలు", 
     "Proverbs": "సామెతలు", "Ecclesiastes": "ప్రసంగి", "Song of Solomon": "పరమగీతము",
     "Isaiah": "యెషయా", "Jeremiah": "యిర్మీయా", "Lamentations": "విలాపవాక్యములు",
@@ -45,8 +44,8 @@ class _BibleHomeState extends State<BibleHome> {
     "Zechariah": "జెకర్యా", "Malachi": "మలాకీ", "Matthew": "మత్తయి",
     "Mark": "మార్కు", "Luke": "లూకా", "John": "యోహాను",
     "Acts": "అపొస్తలుల కార్యములు", "Romans": "రోమీయులకు", "1 Corinthians": "1 కొరింథీయులకు",
-    "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "エఫెసీయులకు",
-    "Philippians": "ఫిలిప్పీయులకు", "Colossians": "కొలొస్సయులకు", "1 Thessalonians": "1 థెస్సలొనీకయులకు",
+    "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "ఎఫెసీయులకు",
+    "Philippians": "フィリピయులకు", "Colossians": "కొలొస్సయులకు", "1 Thessalonians": "1 థెస్సలొనీకయులకు",
     "2 Thessalonians": "2 థెస్సలొనీకయులకు", "1 Timothy": "1 తిమోతికి", "2 Timothy": "2 తిమోతికి",
     "Titus": "తీతుకు", "Philemon": "ఫిలేమోనుకు", "Hebrews": "హెబ్రీయులకు",
     "James": "యాకోబు", "1 Peter": "1 పేతురు", "2 Peter": "2 పేతురు",
@@ -90,7 +89,6 @@ class _BibleHomeState extends State<BibleHome> {
       final String xmlString = await rootBundle.loadString('assets/bible.xml');
       _document = XmlDocument.parse(xmlString);
       final bookElements = _document!.findAllElements('BIBLEBOOK');
-
       setState(() {
         books = bookElements.map((e) => e.getAttribute('bname')!).toList();
         if (books.isNotEmpty) {
@@ -99,15 +97,13 @@ class _BibleHomeState extends State<BibleHome> {
         }
       });
     } catch (e) {
-      debugPrint("Error loading XML: $e");
+      debugPrint("Error XML: $e");
     }
   }
 
   void _updateChapters(String bookName) {
     if (_document == null) return;
-    final book = _document!.findAllElements('BIBLEBOOK').firstWhere(
-      (e) => e.getAttribute('bname') == bookName
-    );
+    final book = _document!.findAllElements('BIBLEBOOK').firstWhere((e) => e.getAttribute('bname') == bookName);
     setState(() {
       chapters = book.findAllElements('CHAPTER').map((e) => e.getAttribute('cnumber')!).toList();
       if (chapters.isNotEmpty) {
@@ -119,12 +115,8 @@ class _BibleHomeState extends State<BibleHome> {
 
   void _updateVerses(String bookName, String chapterNum) {
     if (_document == null) return;
-    final book = _document!.findAllElements('BIBLEBOOK').firstWhere(
-      (e) => e.getAttribute('bname') == bookName
-    );
-    final chapter = book.findAllElements('CHAPTER').firstWhere(
-      (e) => e.getAttribute('cnumber') == chapterNum
-    );
+    final book = _document!.findAllElements('BIBLEBOOK').firstWhere((e) => e.getAttribute('bname') == bookName);
+    final chapter = book.findAllElements('CHAPTER').firstWhere((e) => e.getAttribute('cnumber') == chapterNum);
     setState(() {
       verses = chapter.findAllElements('VERS').map((e) => {
         'num': e.getAttribute('vnumber')!,
@@ -157,7 +149,6 @@ class _BibleHomeState extends State<BibleHome> {
         title: Text("B I B L E", style: GoogleFonts.ubuntu(color: Colors.white, letterSpacing: 4, fontSize: 18, fontWeight: FontWeight.bold)),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
         actions: [
           IconButton(
             icon: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off, color: Colors.blueAccent),
@@ -170,12 +161,7 @@ class _BibleHomeState extends State<BibleHome> {
             icon: const Icon(Icons.search),
             onPressed: () async {
               if (_document == null) return;
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BibleSearch(document: _document!, currentBook: selectedBook),
-                ),
-              );
+              final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => BibleSearch(document: _document!, currentBook: selectedBook)));
               if (result != null) {
                 setState(() {
                   selectedBook = result['book'];
@@ -194,14 +180,11 @@ class _BibleHomeState extends State<BibleHome> {
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Colors.white24, width: 1)),
-                  ),
                   child: Row(
                     children: [
-                      Expanded(flex: 5, child: Center(child: Text("BOOKS", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12, letterSpacing: 2)))),
-                      Expanded(flex: 2, child: Center(child: Text("CH", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12, letterSpacing: 2)))),
-                      Expanded(flex: 2, child: Center(child: Text("VS", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12, letterSpacing: 2)))),
+                      Expanded(flex: 5, child: Center(child: Text("BOOKS", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12)))),
+                      Expanded(flex: 2, child: Center(child: Text("CH", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12)))),
+                      Expanded(flex: 2, child: Center(child: Text("VS", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12)))),
                     ],
                   ),
                 ),
@@ -210,97 +193,42 @@ class _BibleHomeState extends State<BibleHome> {
                     children: [
                       Expanded(
                         flex: 5,
-                        child: Container(
-                          decoration: const BoxDecoration(border: Border(right: BorderSide(color: Colors.white12, width: 1))),
-                          child: ListView.builder(
-                            itemCount: books.length,
-                            itemBuilder: (context, index) {
-                              String bName = books[index];
-                              bool isSelected = selectedBook == bName;
-                              return InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    selectedBook = bName;
-                                    _updateChapters(bName);
-                                  });
-                                },
-                                child: Container(
-                                  color: isSelected ? Colors.white12 : Colors.transparent,
-                                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.menu_book, color: isSelected ? Colors.white : Colors.white54, size: 16),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          teluguBooks[bName] ?? bName,
-                                          style: GoogleFonts.balooTammudu2(
-                                            color: isSelected ? Colors.white : Colors.white54,
-                                            fontSize: 16,
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                        child: ListView.builder(
+                          itemCount: books.length,
+                          itemBuilder: (context, index) {
+                            String bName = books[index];
+                            bool isSelected = selectedBook == bName;
+                            return ListTile(
+                              tileColor: isSelected ? Colors.white12 : Colors.transparent,
+                              onTap: () => setState(() { selectedBook = bName; _updateChapters(bName); }),
+                              title: Text(teluguBooks[bName] ?? bName, style: GoogleFonts.balooTammudu2(color: isSelected ? Colors.white : Colors.white54, fontSize: 16)),
+                            );
+                          },
                         ),
                       ),
                       Expanded(
                         flex: 2,
-                        child: Container(
-                          decoration: const BoxDecoration(border: Border(right: BorderSide(color: Colors.white12, width: 1))),
-                          child: ListView.builder(
-                            itemCount: chapters.length,
-                            itemBuilder: (context, index) {
-                              String cNum = chapters[index];
-                              bool isSelected = selectedChapter == cNum;
-                              return InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    selectedChapter = cNum;
-                                    _updateVerses(selectedBook, cNum);
-                                  });
-                                },
-                                child: Container(
-                                  color: isSelected ? Colors.white12 : Colors.transparent,
-                                  padding: const EdgeInsets.symmetric(vertical: 15),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    cNum,
-                                    style: GoogleFonts.ubuntu(
-                                      color: isSelected ? Colors.white : Colors.white54,
-                                      fontSize: 18,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                        child: ListView.builder(
+                          itemCount: chapters.length,
+                          itemBuilder: (context, index) {
+                            String cNum = chapters[index];
+                            bool isSelected = selectedChapter == cNum;
+                            return ListTile(
+                              tileColor: isSelected ? Colors.white12 : Colors.transparent,
+                              onTap: () => setState(() { selectedChapter = cNum; _updateVerses(selectedBook, cNum); }),
+                              title: Center(child: Text(cNum, style: GoogleFonts.ubuntu(color: isSelected ? Colors.white : Colors.white54, fontSize: 18))),
+                            );
+                          },
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: ListView.builder(
                           itemCount: verses.length,
-                          itemBuilder: (context, index) {
-                            String vNum = verses[index]['num']!;
-                            return InkWell(
-                              onTap: () => _goToReadingPage(index),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 15),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  vNum,
-                                  style: GoogleFonts.ubuntu(color: Colors.white70, fontSize: 18),
-                                ),
-                              ),
-                            );
-                          },
+                          itemBuilder: (context, index) => ListTile(
+                            onTap: () => _goToReadingPage(index),
+                            title: Center(child: Text(verses[index]['num']!, style: GoogleFonts.ubuntu(color: Colors.white70, fontSize: 18))),
+                          ),
                         ),
                       ),
                     ],
@@ -312,6 +240,9 @@ class _BibleHomeState extends State<BibleHome> {
   }
 }
 
+// =========================================================================
+// రీడింగ్ పేజీ - ఇక్కడే అసలైన మార్పులు ఉన్నాయి
+// =========================================================================
 class BibleReadingPage extends StatefulWidget {
   final String bookName;
   final String englishBookName;
@@ -369,8 +300,11 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
       final lines = data.split('\n');
       Map<String, List<String>> tempTSK = {};
       for (var line in lines) {
-        if (line.trim().isEmpty || line.startsWith('From')) continue;
-        final parts = line.split('\t'); 
+        String trimmedLine = line.trim();
+        if (trimmedLine.isEmpty || trimmedLine.startsWith('From')) continue;
+        
+        // ట్యాబ్స్ లేదా స్పేస్ లని హ్యాండిల్ చేయడానికి regex
+        final parts = trimmedLine.split(RegExp(r'\s+')); 
         if (parts.length >= 2) {
           String fromVerse = parts[0].trim();
           String toVerse = parts[1].trim();
@@ -387,6 +321,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
   void _showReferences(String verseNum) {
     String bookCode = tskBookCodes[widget.englishBookName] ?? widget.englishBookName;
     String key = "$bookCode.${widget.chapterNumber}.$verseNum";
+    
     List<String> refs = _tskData[key] ?? [];
 
     showModalBottomSheet(
@@ -423,7 +358,6 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     for (var index in sortedIndices) {
       textToShare += "${widget.verses[index]['num']}. ${widget.verses[index]['text']}\n";
     }
-    textToShare += "\nShared by WORLD OF GOD App";
     Share.share(textToShare);
   }
 
@@ -435,20 +369,16 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
         backgroundColor: Colors.black,
         title: Text("${widget.bookName} ${widget.chapterNumber}", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20)),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
         actions: [
           if (selectedVerseIndices.isNotEmpty)
             IconButton(icon: const Icon(Icons.share, color: Colors.blueAccent), onPressed: _shareVerses),
         ],
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        padding: const EdgeInsets.all(15),
         itemCount: widget.verses.length,
         itemBuilder: (context, index) {
           bool isSelected = selectedVerseIndices.contains(index);
-          bool isInitial = index == widget.initialScrollIndex && selectedVerseIndices.isEmpty;
-
           return ListTile(
             contentPadding: EdgeInsets.zero,
             selected: isSelected,
@@ -456,41 +386,26 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
             onLongPress: () => setState(() => selectedVerseIndices.add(index)),
             onTap: () {
               if (selectedVerseIndices.isNotEmpty) {
-                setState(() {
-                  isSelected ? selectedVerseIndices.remove(index) : selectedVerseIndices.add(index);
-                });
+                setState(() => isSelected ? selectedVerseIndices.remove(index) : selectedVerseIndices.add(index));
               } else {
                 _showReferences(widget.verses[index]['num']!);
               }
             },
-            title: Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: isInitial ? Colors.white10 : Colors.transparent,
-                borderRadius: BorderRadius.circular(5)
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: "${widget.verses[index]['num']}. ",
-                            style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                          TextSpan(
-                            text: widget.verses[index]['text']!,
-                            style: GoogleFonts.balooTammudu2(fontSize: 18, color: Colors.white, height: 1.6),
-                          ),
-                        ],
-                      ),
+            title: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(text: "${widget.verses[index]['num']}. ", style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                        TextSpan(text: widget.verses[index]['text']!, style: GoogleFonts.balooTammudu2(fontSize: 18, color: Colors.white, height: 1.6)),
+                      ],
                     ),
                   ),
-                  const Icon(Icons.auto_awesome_motion, color: Colors.white12, size: 16),
-                ],
-              ),
+                ),
+                const Icon(Icons.auto_awesome_motion, color: Colors.white12, size: 16),
+              ],
             ),
           );
         },
