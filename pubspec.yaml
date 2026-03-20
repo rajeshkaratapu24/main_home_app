@@ -33,4 +33,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/bible.xml
-    - assets/tsk.txt
+    - assets/references/
