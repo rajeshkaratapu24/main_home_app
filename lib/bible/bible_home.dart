@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; // <--- ఇదే ఆ "ముఖ్యమైన లైన్" బ్రో!
 import 'package:xml/xml.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
@@ -44,7 +44,7 @@ class _BibleHomeState extends State<BibleHome> {
     "Zechariah": "జెకర్యా", "Malachi": "మలాకీ", "Matthew": "మత్తయి",
     "Mark": "మార్కు", "Luke": "లూకా", "John": "యోహాను",
     "Acts": "అపొస్తలుల కార్యములు", "Romans": "రోమీయులకు", "1 Corinthians": "1 కొరింథీయులకు",
-    "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "ఎఫెసీయులకు",
+    "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "エఫెసీయులకు",
     "Philippians": "フィリピయులకు", "Colossians": "కొలొస్సయులకు", "1 Thessalonians": "1 థెస్సలొనీకయులకు",
     "2 Thessalonians": "2 థెస్సలొనీకయులకు", "1 Timothy": "1 తిమోతికి", "2 Timothy": "2 తిమోతికి",
     "Titus": "తీతుకు", "Philemon": "ఫిలేమోనుకు", "Hebrews": "హెబ్రీయులకు",
@@ -97,7 +97,7 @@ class _BibleHomeState extends State<BibleHome> {
         }
       });
     } catch (e) {
-      debugPrint("Error XML: $e");
+      debugPrint("Error: $e");
     }
   }
 
@@ -178,16 +178,6 @@ class _BibleHomeState extends State<BibleHome> {
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
           : Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 5, child: Center(child: Text("BOOKS", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12)))),
-                      Expanded(flex: 2, child: Center(child: Text("CH", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12)))),
-                      Expanded(flex: 2, child: Center(child: Text("VS", style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 12)))),
-                    ],
-                  ),
-                ),
                 Expanded(
                   child: Row(
                     children: [
@@ -240,9 +230,6 @@ class _BibleHomeState extends State<BibleHome> {
   }
 }
 
-// =========================================================================
-// రీడింగ్ పేజీ - ఇక్కడే అసలైన మార్పులు ఉన్నాయి
-// =========================================================================
 class BibleReadingPage extends StatefulWidget {
   final String bookName;
   final String englishBookName;
@@ -265,7 +252,7 @@ class BibleReadingPage extends StatefulWidget {
 
 class _BibleReadingPageState extends State<BibleReadingPage> {
   Set<int> selectedVerseIndices = {};
-  Map<String, List<String>> _tskData = {}; // టెక్స్ట్ డేటా కోసం మ్యాప్
+  Map<String, List<String>> _tskData = {}; 
 
   final Map<String, String> tskBookCodes = {
     "Genesis": "Gen", "Exodus": "Exod", "Leviticus": "Lev", "Numbers": "Num",
@@ -277,7 +264,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     "Isaiah": "Isa", "Jeremiah": "Jer", "Lamentations": "Lam", "Ezekiel": "Ezek",
     "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joel", "Amos": "Amos",
     "Obadiah": "Obad", "Jonah": "Jonah", "Micah": "Mic", "Nahum": "Nah",
-    "Habakkuk": "Hab", "Zephaniah": "Zeph", "Haggai": "Hag", "Zechariah": "Zech",
+    "Habakkuk": "Hab", "Zephaniah": "Zeph", "Haggai": "Hag", "Zechariah": "Zec",
     "Malachi": "Mal", "Matthew": "Matt", "Mark": "Mark", "Luke": "Luke",
     "John": "John", "Acts": "Acts", "Romans": "Rom", "1 Corinthians": "1Cor",
     "2 Corinthians": "2Cor", "Galatians": "Gal", "Ephesians": "Eph",
@@ -294,16 +281,15 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     _loadTSK();
   }
 
+  // ఇదే బ్రో ఫైల్ ని లోపలికి లోడ్ చేసే అసలైన ఫంక్షన్
   Future<void> _loadTSK() async {
     try {
       final String data = await rootBundle.loadString('assets/tsk.txt');
-      final lines = data.split('\n');
+      final lines = data.split(RegExp(r'\r?\n'));
       Map<String, List<String>> tempTSK = {};
       for (var line in lines) {
         String trimmedLine = line.trim();
         if (trimmedLine.isEmpty || trimmedLine.startsWith('From')) continue;
-        
-        // ట్యాబ్స్ లేదా స్పేస్ లని హ్యాండిల్ చేయడానికి regex
         final parts = trimmedLine.split(RegExp(r'\s+')); 
         if (parts.length >= 2) {
           String fromVerse = parts[0].trim();
@@ -321,8 +307,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
   void _showReferences(String verseNum) {
     String bookCode = tskBookCodes[widget.englishBookName] ?? widget.englishBookName;
     String key = "$bookCode.${widget.chapterNumber}.$verseNum";
-    
-    List<String> refs = _tskData[key] ?? [];
+    List<String> refs = _tskData[key.trim()] ?? [];
 
     showModalBottomSheet(
       context: context,
@@ -337,12 +322,12 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
             const Divider(color: Colors.white12),
             Expanded(
               child: refs.isEmpty 
-                ? const Center(child: Text("నోట్స్ లేవు బ్రో", style: TextStyle(color: Colors.white30)))
+                ? Center(child: Text("నోట్స్ లేవు బ్రో (Key: $key)", style: const TextStyle(color: Colors.white30)))
                 : ListView.builder(
                     itemCount: refs.length,
                     itemBuilder: (context, i) => ListTile(
                       leading: const Icon(Icons.link, color: Colors.blueAccent, size: 18),
-                      title: Text(refs[i], style: const TextStyle(color: Colors.white70)),
+                      title: Text(refs[i].replaceAll('.', ' '), style: const TextStyle(color: Colors.white70)),
                     ),
                   ),
             ),
@@ -369,6 +354,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
         backgroundColor: Colors.black,
         title: Text("${widget.bookName} ${widget.chapterNumber}", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20)),
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           if (selectedVerseIndices.isNotEmpty)
             IconButton(icon: const Icon(Icons.share, color: Colors.blueAccent), onPressed: _shareVerses),
@@ -381,8 +367,6 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
           bool isSelected = selectedVerseIndices.contains(index);
           return ListTile(
             contentPadding: EdgeInsets.zero,
-            selected: isSelected,
-            selectedTileColor: Colors.white10,
             onLongPress: () => setState(() => selectedVerseIndices.add(index)),
             onTap: () {
               if (selectedVerseIndices.isNotEmpty) {
