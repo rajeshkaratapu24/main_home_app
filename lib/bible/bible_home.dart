@@ -36,7 +36,7 @@ class _BibleHomeState extends State<BibleHome> {
     "Job": "యోబు", "Psalm": "కీర్తనలు", "Psalms": "కీర్తనలు", 
     "Proverbs": "సామెతలు", "Ecclesiastes": "ప్రసంగి", "Song of Solomon": "పరమగీతము",
     "Isaiah": "యెషయా", "Jeremiah": "యిర్మీయా", "Lamentations": "విలాపవాక్యములు",
-    "Ezekiel": "యెహెజ్కేలు", "Daniel": "దానియేలు", "Hosea": "ホషేయ",
+    "Ezekiel": "యెహెజ్కేలు", "Daniel": "దానియేలు", "Hosea": "హోషేయ",
     "Joel": "యోవేలు", "Amos": "ఆమోసు", "Obadiah": "ఓబద్యా",
     "Jonah": "యోనా", "Micah": "మీకా", "Nahum": "నహూము",
     "Habakkuk": "హబక్కుకు", "Zephaniah": "జెఫన్యా", "Haggai": "హగ్గయి",
@@ -44,9 +44,9 @@ class _BibleHomeState extends State<BibleHome> {
     "Mark": "మార్కు", "Luke": "లూకా", "John": "యోహాను",
     "Acts": "అపొస్తలుల కార్యములు", "Romans": "రోమీయులకు", "1 Corinthians": "1 కొరింథీయులకు",
     "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "ఎఫెసీయులకు",
-    "Philippians": "フィリピయులకు", "Colossians": "కొలొస్సయులకు", "1 Thessalonians": "1 థెస్సలొనీకయులకు",
+    "Philippians": "ఫిలిప్పీయులకు", "Colossians": "కొలొస్సయులకు", "1 Thessalonians": "1 థెస్సలొనీకయులకు",
     "2 Thessalonians": "2 థెస్సలొనీకయులకు", "1 Timothy": "1 తిమోతికి", "2 Timothy": "2 తిమోతికి",
-    "Titus": "తీతుకు", "Philemon": "フィレーమోనుకు", "Hebrews": "ヘブライయులకు",
+    "Titus": "తీతుకు", "Philemon": "ఫిలేమోనుకు", "Hebrews": "హెబ్రీయులకు",
     "James": "యాకోబు", "1 Peter": "1 పేతురు", "2 Peter": "2 పేతురు",
     "1 John": "1 యోహాను", "2 John": "2 యోహాను", "3 John": "3 యోహాను",
     "Jude": "యూదా", "Revelation": "ప్రకటన గ్రంథము",
@@ -96,7 +96,7 @@ class _BibleHomeState extends State<BibleHome> {
         }
       });
     } catch (e) {
-      debugPrint("Error: $e");
+      debugPrint("Error loading XML: $e");
     }
   }
 
@@ -115,40 +115,40 @@ class _BibleHomeState extends State<BibleHome> {
   void _updateVerses(String bookName, String chapterNum) {
     if (_document == null) return;
     final bookElements = _document!.findAllElements('BIBLEBOOK').toList();
-    
-    int currentGlobalIdx = 0;
+    int currentIdx = 0;
     for (var b in bookElements) {
       final bName = b.getAttribute('bname');
-      final chaptersInBook = b.findAllElements('CHAPTER').toList();
-      for (var c in chaptersInBook) {
+      for (var c in b.findAllElements('CHAPTER')) {
         final cNum = c.getAttribute('cnumber');
         if (bName == bookName && cNum == chapterNum) {
           setState(() {
             verses = c.findAllElements('VERS').map((e) {
-              currentGlobalIdx++;
+              currentIdx++;
               return {
                 'num': e.getAttribute('vnumber')!,
                 'text': e.innerText.trim(),
-                'globalId': currentGlobalIdx // JSON లో ఉండే ID
+                'globalId': currentIdx
               };
             }).toList();
           });
           return;
         }
-        currentGlobalIdx += c.findAllElements('VERS').length;
+        currentIdx += c.findAllElements('VERS').length;
       }
     }
   }
 
-  void _goToReadingPage(int verseIndex) {
+  void _goToReadingPage(int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => BibleReadingPage(
           bookName: teluguBooks[selectedBook] ?? selectedBook,
+          englishBookName: selectedBook,
           chapterNumber: selectedChapter,
           verses: verses,
-          initialScrollIndex: verseIndex,
+          initialScrollIndex: index,
+          document: _document!,
         ),
       ),
     );
@@ -162,6 +162,7 @@ class _BibleHomeState extends State<BibleHome> {
         backgroundColor: Colors.black,
         title: Text("B I B L E", style: GoogleFonts.ubuntu(color: Colors.white, letterSpacing: 4, fontSize: 18, fontWeight: FontWeight.bold)),
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off, color: Colors.blueAccent),
@@ -189,52 +190,50 @@ class _BibleHomeState extends State<BibleHome> {
       ),
       body: books.isEmpty
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : Column(
+          : Row(
               children: [
                 Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: ListView.builder(
-                          itemCount: books.length,
-                          itemBuilder: (context, index) {
-                            String bName = books[index];
-                            bool isSelected = selectedBook == bName;
-                            return ListTile(
-                              tileColor: isSelected ? Colors.white12 : Colors.transparent,
-                              onTap: () => setState(() { selectedBook = bName; _updateChapters(bName); }),
-                              title: Text(teluguBooks[bName] ?? bName, style: GoogleFonts.balooTammudu2(color: isSelected ? Colors.white : Colors.white54, fontSize: 16)),
-                            );
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: ListView.builder(
-                          itemCount: chapters.length,
-                          itemBuilder: (context, index) {
-                            String cNum = chapters[index];
-                            bool isSelected = selectedChapter == cNum;
-                            return ListTile(
-                              tileColor: isSelected ? Colors.white12 : Colors.transparent,
-                              onTap: () => setState(() { selectedChapter = cNum; _updateVerses(selectedBook, cNum); }),
-                              title: Center(child: Text(cNum, style: GoogleFonts.ubuntu(color: isSelected ? Colors.white : Colors.white54, fontSize: 18))),
-                            );
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: ListView.builder(
-                          itemCount: verses.length,
-                          itemBuilder: (context, index) => ListTile(
-                            onTap: () => _goToReadingPage(index),
-                            title: Center(child: Text(verses[index]['num']!, style: GoogleFonts.ubuntu(color: Colors.white70, fontSize: 18))),
-                          ),
-                        ),
-                      ),
-                    ],
+                  flex: 5,
+                  child: Container(
+                    decoration: const BoxDecoration(border: Border(right: BorderSide(color: Colors.white12, width: 1))),
+                    child: ListView.builder(
+                      itemCount: books.length,
+                      itemBuilder: (context, index) {
+                        bool isSelected = selectedBook == books[index];
+                        return ListTile(
+                          tileColor: isSelected ? Colors.white12 : Colors.transparent,
+                          onTap: () => setState(() { selectedBook = books[index]; _updateChapters(selectedBook); }),
+                          title: Text(teluguBooks[books[index]] ?? books[index], style: GoogleFonts.balooTammudu2(color: isSelected ? Colors.white : Colors.white54, fontSize: 16)),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    decoration: const BoxDecoration(border: Border(right: BorderSide(color: Colors.white12, width: 1))),
+                    child: ListView.builder(
+                      itemCount: chapters.length,
+                      itemBuilder: (context, index) {
+                        bool isSelected = selectedChapter == chapters[index];
+                        return ListTile(
+                          tileColor: isSelected ? Colors.white12 : Colors.transparent,
+                          onTap: () => setState(() { selectedChapter = chapters[index]; _updateVerses(selectedBook, selectedChapter); }),
+                          title: Center(child: Text(chapters[index], style: GoogleFonts.ubuntu(color: isSelected ? Colors.white : Colors.white54, fontSize: 18))),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: ListView.builder(
+                    itemCount: verses.length,
+                    itemBuilder: (context, index) => ListTile(
+                      onTap: () => _goToReadingPage(index),
+                      title: Center(child: Text(verses[index]['num']!, style: GoogleFonts.ubuntu(color: Colors.white70, fontSize: 18))),
+                    ),
                   ),
                 ),
               ],
@@ -245,28 +244,41 @@ class _BibleHomeState extends State<BibleHome> {
 
 class BibleReadingPage extends StatefulWidget {
   final String bookName;
+  final String englishBookName;
   final String chapterNumber;
   final List<Map<String, dynamic>> verses;
   final int initialScrollIndex;
+  final XmlDocument document;
 
-  const BibleReadingPage({
-    super.key,
-    required this.bookName,
-    required this.chapterNumber,
-    required this.verses,
-    required this.initialScrollIndex,
-  });
+  const BibleReadingPage({super.key, required this.bookName, required this.englishBookName, required this.chapterNumber, required this.verses, required this.initialScrollIndex, required this.document});
 
   @override
   State<BibleReadingPage> createState() => _BibleReadingPageState();
 }
 
 class _BibleReadingPageState extends State<BibleReadingPage> {
+  Set<int> selectedVerseIndices = {};
+
+  final Map<String, String> reverseTskCodes = {
+    "GEN": "Genesis", "EXO": "Exodus", "LEV": "Leviticus", "NUM": "Numbers", "DEU": "Deuteronomy",
+    "JOS": "Joshua", "JDG": "Judges", "RUT": "Ruth", "1SA": "1 Samuel", "2SA": "2 Samuel",
+    "1KI": "1 Kings", "2KI": "2 Kings", "1CH": "1 Chronicles", "2CH": "2 Chronicles",
+    "EZR": "Ezra", "NEH": "Nehemiah", "EST": "Esther", "JOB": "Job", "PSA": "Psalms",
+    "PRO": "Proverbs", "ECC": "Ecclesiastes", "SNG": "Song of Solomon", "ISA": "Isaiah",
+    "JER": "Jeremiah", "LAM": "Lamentations", "EZE": "Ezekiel", "DAN": "Daniel",
+    "HOS": "Hosea", "JOE": "Joel", "AMO": "Amos", "OBA": "Obadiah", "JON": "Jonah",
+    "MIC": "Micah", "NAH": "Nahum", "HAB": "Habakkuk", "ZEP": "Zephaniah", "HAG": "Haggai",
+    "ZEC": "Zechariah", "MAL": "Malachi", "MAT": "Matthew", "MAR": "Mark", "LUK": "Luke",
+    "JOH": "John", "ACT": "Acts", "ROM": "Romans", "1CO": "1 Corinthians", "2CO": "2 Corinthians",
+    "GAL": "Galatians", "EPH": "Ephesians", "PHI": "Philippians", "COL": "Colossians",
+    "1TH": "1 Thessalonians", "2TH": "2 Thessalonians", "1TI": "1 Timothy", "2TI": "2 Timothy",
+    "TIT": "Titus", "PHM": "Philemon", "HEB": "Hebrews", "JAM": "James", "1PE": "1 Peter",
+    "2PE": "2 Peter", "1JO": "1 John", "2JO": "2 John", "3JO": "3 John", "JUD": "Jude", "REV": "Revelation"
+  };
+
   void _showReferences(int index) {
-    final int globalId = widget.verses[index]['globalId'];
+    final int globalId = widget.verses[index]['globalId'] ?? 0;
     final String verseNum = widget.verses[index]['num'];
-    
-    // ఏ ఫైల్ లో డేటా ఉందో లెక్క కడుతున్నాం (ప్రతి ఫైల్ లో 1000 వచనాలు)
     int fileNum = ((globalId - 1) ~/ 1000) + 1;
 
     showModalBottomSheet(
@@ -276,27 +288,33 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
       builder: (context) => FutureBuilder<List<String>>(
         future: _fetchFromJSON(fileNum, globalId),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
-          }
+          if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
           final refs = snapshot.data ?? [];
           return Container(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                Text("క్రాస్ రిఫరెన్సులు: ${widget.bookName} ${widget.chapterNumber}:$verseNum", 
-                     style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                Text("క్రాస్ రిఫరెన్సులు: ${widget.bookName} ${widget.chapterNumber}:$verseNum", style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 16)),
                 const Divider(color: Colors.white12),
                 Expanded(
-                  child: refs.isEmpty 
-                    ? const Center(child: Text("నోట్స్ లేవు బ్రో", style: TextStyle(color: Colors.white30)))
-                    : ListView.builder(
-                        itemCount: refs.length,
-                        itemBuilder: (context, i) => ListTile(
-                          leading: const Icon(Icons.link, color: Colors.blueAccent, size: 18),
-                          title: Text(refs[i], style: const TextStyle(color: Colors.white70)),
-                        ),
-                      ),
+                  child: refs.isEmpty ? const Center(child: Text("నోట్స్ లేవు బ్రో", style: TextStyle(color: Colors.white30))) : ListView.builder(
+                    itemCount: refs.length,
+                    itemBuilder: (context, i) {
+                      List<String> parts = refs[i].split(' ');
+                      String engName = reverseTskCodes[parts[0]] ?? parts[0];
+                      String telName = BibleHome().teluguBooks[engName] ?? engName;
+                      String display = "$telName ${parts[1]}:${parts[2]}";
+
+                      return ListTile(
+                        leading: const Icon(Icons.link, color: Colors.blueAccent, size: 18),
+                        title: Text(display, style: const TextStyle(color: Colors.white70)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _navigateToRef(engName, parts[1], parts[2]);
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -306,20 +324,51 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     );
   }
 
+  void _navigateToRef(String bName, String cNum, String vNum) {
+    try {
+      final book = widget.document.findAllElements('BIBLEBOOK').firstWhere((e) => e.getAttribute('bname') == bName);
+      final chapter = book.findAllElements('CHAPTER').firstWhere((e) => e.getAttribute('cnumber') == cNum);
+      final List<Map<String, dynamic>> vList = chapter.findAllElements('VERS').map((e) => {
+        'num': e.getAttribute('vnumber')!,
+        'text': e.innerText.trim(),
+      }).toList();
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BibleReadingPage(
+            bookName: BibleHome().teluguBooks[bName] ?? bName,
+            englishBookName: bName,
+            chapterNumber: cNum,
+            verses: vList,
+            initialScrollIndex: int.parse(vNum) - 1,
+            document: widget.document,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("వచనం దొరకలేదు బ్రో")));
+    }
+  }
+
+  void _shareVerses() {
+    String textToShare = "${widget.bookName} ${widget.chapterNumber}\n\n";
+    var sortedIndices = selectedVerseIndices.toList()..sort();
+    for (var index in sortedIndices) {
+      textToShare += "${widget.verses[index]['num']}. ${widget.verses[index]['text']}\n";
+    }
+    Share.share(textToShare);
+  }
+
   Future<List<String>> _fetchFromJSON(int fileNum, int globalId) async {
     try {
-      final String response = await rootBundle.loadString('assets/references/$fileNum.json');
-      final Map<String, dynamic> data = json.decode(response);
-      
-      // JSON లో నీ డేటా ఇలా ఉంది: {"1": {"v": "...", "r": {"ID": "REF"}}}
+      final String res = await rootBundle.loadString('assets/references/$fileNum.json');
+      final data = json.decode(res);
       if (data.containsKey(globalId.toString())) {
         final refMap = data[globalId.toString()]['r'] as Map<String, dynamic>;
-        // కేవలం రిఫరెన్స్ టెక్స్ట్ (ఉదా: EXO 20 11) కావాలి కాబట్టి Values తీసుకుంటున్నాం
         return refMap.values.map((v) => v.toString()).toList();
       }
-    } catch (e) {
-      debugPrint("JSON Load Error: $e");
-    }
+    } catch (e) { debugPrint("JSON Error: $e"); }
     return [];
   }
 
@@ -331,29 +380,45 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
         backgroundColor: Colors.black,
         title: Text("${widget.bookName} ${widget.chapterNumber}", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20)),
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          if (selectedVerseIndices.isNotEmpty)
+            IconButton(icon: const Icon(Icons.share, color: Colors.blueAccent), onPressed: _shareVerses),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(15),
         itemCount: widget.verses.length,
         itemBuilder: (context, index) {
+          bool isSelected = selectedVerseIndices.contains(index);
           return ListTile(
             contentPadding: EdgeInsets.zero,
-            onTap: () => _showReferences(index),
-            title: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(text: "${widget.verses[index]['num']}. ", style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
-                        TextSpan(text: widget.verses[index]['text']!, style: GoogleFonts.balooTammudu2(fontSize: 18, color: Colors.white, height: 1.6)),
-                      ],
+            onLongPress: () => setState(() => selectedVerseIndices.add(index)),
+            onTap: () {
+              if (selectedVerseIndices.isNotEmpty) {
+                setState(() => isSelected ? selectedVerseIndices.remove(index) : selectedVerseIndices.add(index));
+              } else {
+                _showReferences(index);
+              }
+            },
+            title: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(color: isSelected ? Colors.white12 : Colors.transparent, borderRadius: BorderRadius.circular(5)),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(text: "${widget.verses[index]['num']}. ", style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+                          TextSpan(text: widget.verses[index]['text']!, style: GoogleFonts.balooTammudu2(fontSize: 18, color: Colors.white, height: 1.6)),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const Icon(Icons.auto_awesome_motion, color: Colors.white12, size: 16),
-              ],
+                ],
+              ),
             ),
           );
         },
