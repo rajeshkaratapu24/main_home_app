@@ -10,7 +10,6 @@ import 'bible_search.dart';
 
 class BibleHome extends StatefulWidget {
   const BibleHome({super.key});
-
   @override
   State<BibleHome> createState() => _BibleHomeState();
 }
@@ -22,7 +21,6 @@ class _BibleHomeState extends State<BibleHome> {
   List<String> books = [];
   List<String> chapters = [];
   List<Map<String, String>> verses = [];
-
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isMusicPlaying = false;
   String? bgmUrl;
@@ -44,8 +42,8 @@ class _BibleHomeState extends State<BibleHome> {
     "Zechariah": "జెకర్యా", "Malachi": "మలాకీ", "Matthew": "మత్తయి",
     "Mark": "మార్కు", "Luke": "లూకా", "John": "యోహాను",
     "Acts": "అపొస్తలుల కార్యములు", "Romans": "రోమీయులకు", "1 Corinthians": "1 కొరింథీయులకు",
-    "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "エఫెసీయులకు",
-    "Philippians": "フィリピయులకు", "Colossians": "కొలొస్సయులకు", "1 Thessalonians": "1 థెస్సలొనీకయులకు",
+    "2 Corinthians": "2 కొరింథీయులకు", "Galatians": "గలతీయులకు", "Ephesians": "ఎఫెసీయులకు",
+    "Philippians": "ఫిలిప్పీయులకు", "Colossians": "కొలొస్సయులకు", "1 Thessalonians": "1 థెస్సలొనీకయులకు",
     "2 Thessalonians": "2 థెస్సలొనీకయులకు", "1 Timothy": "1 తిమోతికి", "2 Timothy": "2 తిమోతికి",
     "Titus": "తీతుకు", "Philemon": "ఫిలేమోనుకు", "Hebrews": "హెబ్రీయులకు",
     "James": "యాకోబు", "1 Peter": "1 పేతురు", "2 Peter": "2 పేతురు",
@@ -148,7 +146,6 @@ class _BibleHomeState extends State<BibleHome> {
         backgroundColor: Colors.black,
         title: Text("B I B L E", style: GoogleFonts.ubuntu(color: Colors.white, letterSpacing: 4, fontSize: 18, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off, color: Colors.blueAccent),
@@ -251,9 +248,7 @@ class BibleReadingPage extends StatefulWidget {
 }
 
 class _BibleReadingPageState extends State<BibleReadingPage> {
-  Set<int> selectedVerseIndices = {};
-  Map<String, List<String>> _tskData = {}; 
-
+  // ఇంగ్లీష్ బుక్ నేమ్స్ కి TSK కోడ్స్ మ్యాపింగ్
   final Map<String, String> tskBookCodes = {
     "Genesis": "Gen", "Exodus": "Exod", "Leviticus": "Lev", "Numbers": "Num",
     "Deuteronomy": "Deut", "Joshua": "Josh", "Judges": "Judg", "Ruth": "Ruth",
@@ -275,67 +270,65 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     "3 John": "3John", "Jude": "Jude", "Revelation": "Rev",
   };
 
-  @override
-  void initState() {
-    super.initState();
-    _loadTSK();
-  }
-
-  Future<void> _loadTSK() async {
-    try {
-      final String data = await rootBundle.loadString('assets/tsk.txt');
-      final lines = data.split(RegExp(r'\r?\n'));
-      Map<String, List<String>> tempTSK = {};
-      for (var line in lines) {
-        String trimmedLine = line.trim();
-        if (trimmedLine.isEmpty || trimmedLine.startsWith('From')) continue;
-        final parts = trimmedLine.split(RegExp(r'\s+')); 
-        if (parts.length >= 2) {
-          String fromVerse = parts[0].trim();
-          String toVerse = parts[1].trim();
-          if (!tempTSK.containsKey(fromVerse)) tempTSK[fromVerse] = [];
-          tempTSK[fromVerse]!.add(toVerse);
-        }
-      }
-      setState(() {
-        _tskData = tempTSK;
-      });
-    } catch (e) {
-      debugPrint("TSK Error: $e");
-    }
-  }
-
-  void _showReferences(String verseNum) {
+  void _showReferences(String verseNum) async {
     String bookCode = tskBookCodes[widget.englishBookName] ?? widget.englishBookName;
-    String key = "$bookCode.${widget.chapterNumber}.$verseNum";
-    List<String> refs = _tskData[key.trim()] ?? [];
-
+    String targetKey = "$bookCode.${widget.chapterNumber}.$verseNum";
+    
+    // లోడింగ్ చూపిస్తున్నాం
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF121212),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Text("క్రాస్ రిఫరెన్సులు: ${widget.bookName} ${widget.chapterNumber}:$verseNum", 
-                 style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
-            const Divider(color: Colors.white12),
-            Expanded(
-              child: refs.isEmpty 
-                ? Center(child: Text("రిఫరెన్సులు లేవు బ్రో (Key: $key)", style: const TextStyle(color: Colors.white30)))
-                : ListView.builder(
-                    itemCount: refs.length,
-                    itemBuilder: (context, i) => ListTile(
-                      leading: const Icon(Icons.link, color: Colors.blueAccent, size: 18),
-                      title: Text(refs[i].replaceAll('.', ' '), style: const TextStyle(color: Colors.white70)),
-                    ),
-                  ),
+      builder: (context) => FutureBuilder<List<String>>(
+        future: _findRefs(targetKey),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+          }
+          final refs = snapshot.data ?? [];
+          return Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Text("క్రాస్ రిఫరెన్సులు: ${widget.bookName} ${widget.chapterNumber}:$verseNum", 
+                     style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                const Divider(color: Colors.white12),
+                Expanded(
+                  child: refs.isEmpty 
+                    ? Center(child: Text("రిఫరెన్సులు లేవు బ్రో\n(Key: $targetKey)", textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30)))
+                    : ListView.builder(
+                        itemCount: refs.length,
+                        itemBuilder: (context, i) => ListTile(
+                          leading: const Icon(Icons.link, color: Colors.blueAccent, size: 18),
+                          title: Text(refs[i].replaceAll('.', ' '), style: const TextStyle(color: Colors.white70)),
+                        ),
+                      ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
+  }
+
+  // ఫైల్ ని వెతికే అసలైన లాజిక్ (మెమరీ ఆదా చేస్తుంది)
+  Future<List<String>> _findRefs(String targetKey) async {
+    try {
+      final String data = await rootBundle.loadString('assets/tsk.txt');
+      final lines = data.split(RegExp(r'\r?\n'));
+      List<String> found = [];
+      for (var line in lines) {
+        if (line.trim().isEmpty || line.startsWith('From')) continue;
+        final parts = line.trim().split(RegExp(r'\s+'));
+        if (parts.isNotEmpty && parts[0] == targetKey) {
+          if (parts.length >= 2) found.add(parts[1]);
+        }
+      }
+      return found;
+    } catch (e) {
+      return [];
+    }
   }
 
   @override
