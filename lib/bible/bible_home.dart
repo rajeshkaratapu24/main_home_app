@@ -118,6 +118,7 @@ class _BibleHomeState extends State<BibleHome> {
             if (_document == null) return;
             final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => BibleSearch(document: _document!)));
             if (result != null) {
+              // సెర్చ్ తర్వాత హోమ్ పేజీ అప్‌డేట్ అయ్యే లాజిక్ ఇక్కడ ఉంది
               setState(() {
                 selectedBook = result['book'];
                 _updateChapters(selectedBook);
@@ -134,19 +135,16 @@ class _BibleHomeState extends State<BibleHome> {
       ),
       body: Row(
         children: [
-          // 1. Books
           Expanded(flex: 5, child: ListView.builder(itemCount: books.length, itemBuilder: (context, i) => ListTile(
             tileColor: selectedBook == books[i] ? Colors.white12 : Colors.transparent,
             onTap: () => setState(() { selectedBook = books[i]; _updateChapters(selectedBook); }),
             title: Text(BibleUtils.teluguBooks[books[i]] ?? books[i], style: GoogleFonts.balooTammudu2(color: selectedBook == books[i] ? Colors.white : Colors.white54, fontSize: 16)),
           ))),
-          // 2. Chapters
           Expanded(flex: 2, child: Container(decoration: const BoxDecoration(border: Border(left: BorderSide(color: Colors.white12), right: BorderSide(color: Colors.white12))), child: ListView.builder(itemCount: chapters.length, itemBuilder: (context, i) => ListTile(
             tileColor: selectedChapter == chapters[i] ? Colors.white12 : Colors.transparent,
             onTap: () => setState(() { selectedChapter = chapters[i]; _updateVerses(selectedBook, selectedChapter); }),
             title: Center(child: Text(chapters[i], style: GoogleFonts.ubuntu(color: selectedChapter == chapters[i] ? Colors.white : Colors.white54, fontSize: 18))),
           )))),
-          // 3. Verses
           Expanded(flex: 2, child: ListView.builder(itemCount: verses.length, itemBuilder: (context, i) => ListTile(
             onTap: () => _goToReadingPage(i),
             title: Center(child: Text(verses[i]['num']!, style: const TextStyle(color: Colors.white70, fontSize: 18))),
