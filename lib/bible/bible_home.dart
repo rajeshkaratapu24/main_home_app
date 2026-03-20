@@ -6,11 +6,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:audioplayers/audioplayers.dart'; 
 import 'package:firebase_database/firebase_database.dart'; 
-import 'package:shared_preferences/shared_preferences.dart'; // Add this
+import 'package:shared_preferences/shared_preferences.dart';
 import 'bible_search.dart';
 import 'bible_utils.dart';
 import 'bible_references_helper.dart';
-import 'bookmarks_page.dart'; // Add this
+import 'bookmarks_page.dart';
 
 class BibleHome extends StatefulWidget {
   const BibleHome({super.key});
@@ -72,9 +72,7 @@ class _BibleHomeState extends State<BibleHome> {
           _updateChapters(selectedBook);
         }
       });
-    } catch (e) {
-      debugPrint("Error loading XML: $e");
-    }
+    } catch (e) { debugPrint("Error: $e"); }
   }
 
   void _updateChapters(String bookName) {
@@ -141,7 +139,6 @@ class _BibleHomeState extends State<BibleHome> {
             isMusicPlaying ? _audioPlayer.pause() : _audioPlayer.resume();
             setState(() => isMusicPlaying = !isMusicPlaying);
           }),
-          // --- Add Search and Bookmarks Here ---
           IconButton(icon: const Icon(Icons.search), onPressed: () async {
             if (_document == null) return;
             final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => BibleSearch(document: _document!, currentBook: selectedBook)));
@@ -191,27 +188,140 @@ class BibleReadingPage extends StatefulWidget {
 }
 
 class _BibleReadingPageState extends State<BibleReadingPage> {
-  Set<int> selectedVerseIndices = {};
-  double _fontSize = 18.0; // Zoom Feature
+  double _fontSize = 18.0;
+  Map<int, Color> highlights = {}; // Highlights store cheyyడానికి
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHighlights();
+  }
+
+  // Highlight colors load cheyyadam
+  Future<void> _loadHighlights() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? stored = prefs.getString('verse_highlights');
+    if (stored != null) {
+      Map<String, dynamic> decoded = jsonDecode(stored);
+      setState(() {
+        highlights = decoded.map((key, value) => MapEntry(int.parse(key), Color(value)));
+      });
+    }
+  }
+
+  // Highlight color save cheyyadam
+  Future<void> _saveHighlight(int globalId, Color? color) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (color == null) {
+      highlights.remove(globalId);
+    } else {
+      highlights[globalId] = color;
+    }
+    String encoded = jsonEncode(highlights.map((key, value) => MapEntry(key.toString(), value.value)));
+    await prefs.setString('verse_highlights', encoded);
+    setState(() {});
+  }
+
+  // Long Press మెనూ
+  void _showVerseMenu(int index) {
+    final verse = widget.verses[index];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1C1C1E),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("${widget.bookName} ${widget.chapterNumber}:${verse['num']}", style: const TextStyle(color: Colors.white54, fontSize: 14)),
+              const SizedBox(height: 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _menuItem(Icons.bookmark_add, "Bookmark", () {
+                    Navigator.pop(context);
+                    _toggleBookmark(verse);
+                  }),
+                  _menuItem(Icons.share, "Share", () {
+                    Navigator.pop(context);
+                    Share.share("${widget.bookName} ${widget.chapterNumber}:${verse['num']}\n${verse['text']}");
+                  }),
+                ],
+              ),
+              const Divider(color: Colors.white10, height: 30),
+              const Text("Highlight Color", style: TextStyle(color: Colors.white, fontSize: 16)),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _colorOption(Colors.yellow.withOpacity(0.3), verse['globalId']),
+                  _colorOption(Colors.green.withOpacity(0.3), verse['globalId']),
+                  _colorOption(Colors.blue.withOpacity(0.3), verse['globalId']),
+                  _colorOption(Colors.pink.withOpacity(0.3), verse['globalId']),
+                  IconButton(icon: const Icon(Icons.format_color_reset, color: Colors.white), onPressed: () {
+                    Navigator.pop(context);
+                    _saveHighlight(verse['globalId'], null);
+                  }),
+                ],
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _menuItem(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(backgroundColor: Colors.white10, child: Icon(icon, color: Colors.blueAccent)),
+          const SizedBox(height: 5),
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _colorOption(Color color, int globalId) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        _saveHighlight(globalId, color);
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 10),
+        width: 35,
+        height: 35,
+        decoration: BoxDecoration(color: color.withOpacity(1), shape: BoxShape.circle, border: Border.all(color: Colors.white24)),
+      ),
+    );
+  }
+
+  Future<void> _toggleBookmark(Map<String, dynamic> verse) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> bookmarks = prefs.getStringList('bible_bookmarks') ?? [];
+    String bookmarkData = jsonEncode({'book': widget.bookName, 'chapter': widget.chapterNumber, 'num': verse['num'], 'text': verse['text']});
+    if (bookmarks.contains(bookmarkData)) { 
+      bookmarks.remove(bookmarkData); 
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Removed from Bookmarks")));
+    } else { 
+      bookmarks.add(bookmarkData); 
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saved to Bookmarks")));
+    }
+    await prefs.setStringList('bible_bookmarks', bookmarks);
+  }
 
   void _navigateToRef(String bName, String cNum, String vNum) {
     try {
       final book = widget.document.findAllElements('BIBLEBOOK').firstWhere((e) => e.getAttribute('bname') == bName);
       final chapter = book.findAllElements('CHAPTER').firstWhere((e) => e.getAttribute('cnumber') == cNum);
       final List<Map<String, dynamic>> vList = chapter.findAllElements('VERS').map((e) => {'num': e.getAttribute('vnumber')!, 'text': e.innerText.trim()}).toList();
-
       Navigator.push(context, MaterialPageRoute(builder: (context) => BibleReadingPage(bookName: BibleUtils.teluguBooks[bName] ?? bName, englishBookName: bName, chapterNumber: cNum, verses: vList, initialScrollIndex: int.parse(vNum) - 1, document: widget.document)));
     } catch (e) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("వచనం దొరకలేదు బ్రో"))); }
-  }
-
-  // --- Bookmark Logic ---
-  Future<void> _toggleBookmark(Map<String, dynamic> verse) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> bookmarks = prefs.getStringList('bible_bookmarks') ?? [];
-    String bookmarkData = jsonEncode({'book': widget.bookName, 'chapter': widget.chapterNumber, 'num': verse['num'], 'text': verse['text']});
-    if (bookmarks.contains(bookmarkData)) { bookmarks.remove(bookmarkData); } else { bookmarks.add(bookmarkData); }
-    await prefs.setStringList('bible_bookmarks', bookmarks);
-    setState(() {});
   }
 
   @override
@@ -219,40 +329,38 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black, 
-        title: Text("${widget.bookName} ${widget.chapterNumber}", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20)), 
-        centerTitle: true, 
+        backgroundColor: Colors.black,
+        title: Text("${widget.bookName} ${widget.chapterNumber}", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20)),
+        centerTitle: true,
         actions: [
-          // --- Zoom Buttons ---
           IconButton(icon: const Icon(Icons.zoom_in), onPressed: () => setState(() => _fontSize < 40 ? _fontSize += 2 : null)),
           IconButton(icon: const Icon(Icons.zoom_out), onPressed: () => setState(() => _fontSize > 12 ? _fontSize -= 2 : null)),
-          
-          if (selectedVerseIndices.isNotEmpty) IconButton(icon: const Icon(Icons.share, color: Colors.blueAccent), onPressed: () {
-            String shareText = "${widget.bookName} ${widget.chapterNumber}\n\n";
-            var sorted = selectedVerseIndices.toList()..sort();
-            for (var i in sorted) { shareText += "${widget.verses[i]['num']}. ${widget.verses[i]['text']}\n"; }
-            Share.share(shareText);
-          }),
         ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(15),
         itemCount: widget.verses.length,
         itemBuilder: (context, index) {
-          bool isSelected = selectedVerseIndices.contains(index);
+          final verse = widget.verses[index];
+          Color? highlightColor = highlights[verse['globalId']];
           return ListTile(
             contentPadding: EdgeInsets.zero,
-            onLongPress: () => setState(() => selectedVerseIndices.add(index)),
+            onLongPress: () => _showVerseMenu(index),
             onTap: () {
-              if (selectedVerseIndices.isNotEmpty) { setState(() => isSelected ? selectedVerseIndices.remove(index) : selectedVerseIndices.add(index)); }
-              else { BibleReferencesHelper.showReferences(context: context, bookName: widget.bookName, chapterNumber: widget.chapterNumber, verseData: widget.verses[index], document: widget.document, onNavigate: (b, c, v) => _navigateToRef(b, c, v)); }
+              BibleReferencesHelper.showReferences(context: context, bookName: widget.bookName, chapterNumber: widget.chapterNumber, verseData: verse, document: widget.document, onNavigate: (b, c, v) => _navigateToRef(b, c, v));
             },
-            // --- Bookmark Icon on Verse ---
-            trailing: IconButton(icon: const Icon(Icons.bookmark_add_outlined, color: Colors.white12, size: 20), onPressed: () => _toggleBookmark(widget.verses[index])),
-            title: Container(padding: const EdgeInsets.all(5), decoration: BoxDecoration(color: isSelected ? Colors.white12 : Colors.transparent, borderRadius: BorderRadius.circular(5)), child: RichText(text: TextSpan(children: [
-              TextSpan(text: "${widget.verses[index]['num']}. ", style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
-              TextSpan(text: widget.verses[index]['text']!, style: GoogleFonts.balooTammudu2(fontSize: _fontSize, color: Colors.white, height: 1.6)),
-            ]))),
+            title: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+              decoration: BoxDecoration(color: highlightColor ?? Colors.transparent, borderRadius: BorderRadius.circular(5)),
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(text: "${verse['num']}. ", style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                    TextSpan(text: verse['text']!, style: GoogleFonts.balooTammudu2(fontSize: _fontSize, color: Colors.white, height: 1.6)),
+                  ],
+                ),
+              ),
+            ),
           );
         },
       ),
