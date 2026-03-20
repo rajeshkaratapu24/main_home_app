@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // <--- ఇదే ఆ "ముఖ్యమైన లైన్" బ్రో!
+import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
@@ -97,7 +97,7 @@ class _BibleHomeState extends State<BibleHome> {
         }
       });
     } catch (e) {
-      debugPrint("Error: $e");
+      debugPrint("Error loading XML: $e");
     }
   }
 
@@ -264,7 +264,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     "Isaiah": "Isa", "Jeremiah": "Jer", "Lamentations": "Lam", "Ezekiel": "Ezek",
     "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joel", "Amos": "Amos",
     "Obadiah": "Obad", "Jonah": "Jonah", "Micah": "Mic", "Nahum": "Nah",
-    "Habakkuk": "Hab", "Zephaniah": "Zeph", "Haggai": "Hag", "Zechariah": "Zec",
+    "Habakkuk": "Hab", "Zephaniah": "Zeph", "Haggai": "Hag", "Zechariah": "Zech",
     "Malachi": "Mal", "Matthew": "Matt", "Mark": "Mark", "Luke": "Luke",
     "John": "John", "Acts": "Acts", "Romans": "Rom", "1 Corinthians": "1Cor",
     "2 Corinthians": "2Cor", "Galatians": "Gal", "Ephesians": "Eph",
@@ -281,44 +281,25 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     _loadTSK();
   }
 
-  // ఇదే బ్రో ఫైల్ ని లోపలికి లోడ్ చేసే అసలైన ఫంక్షన్
- Future<void> _loadTSK() async {
+  Future<void> _loadTSK() async {
     try {
       final String data = await rootBundle.loadString('assets/tsk.txt');
-      // లైన్ బై లైన్ విడదీస్తున్నాం
       final lines = data.split(RegExp(r'\r?\n'));
-      
       Map<String, List<String>> tempTSK = {};
-      
       for (var line in lines) {
-        // 1. కంటికి కనిపించని చెత్త అక్షరాలను (BOM, Control chars) క్లీన్ చేస్తున్నాం
-        String cleanLine = line.replaceAll(RegExp(r'[^\x20-\x7E\t]'), '').trim();
-        
-        if (cleanLine.isEmpty || cleanLine.startsWith('From') || cleanLine.startsWith('#')) continue;
-        
-        // 2. ట్యాబ్ (\t) లేదా ఎన్ని స్పేస్ లు ఉన్నా విడదీసేలా Regex
-        final parts = cleanLine.split(RegExp(r'\t|\s+')); 
-        
+        String trimmedLine = line.trim();
+        if (trimmedLine.isEmpty || trimmedLine.startsWith('From')) continue;
+        final parts = trimmedLine.split(RegExp(r'\s+')); 
         if (parts.length >= 2) {
-          String fromVerse = parts[0].trim(); // ఉదా: Gen.1.1
-          String toVerse = parts[1].trim();   // ఉదా: 1John.1.1
-          
-          if (!tempTSK.containsKey(fromVerse)) {
-            tempTSK[fromVerse] = [];
-          }
+          String fromVerse = parts[0].trim();
+          String toVerse = parts[1].trim();
+          if (!tempTSK.containsKey(fromVerse)) tempTSK[fromVerse] = [];
           tempTSK[fromVerse]!.add(toVerse);
         }
       }
-
       setState(() {
         _tskData = tempTSK;
       });
-      debugPrint("TSK Loaded: ${tempTSK.length} keys found");
-    } catch (e) {
-      debugPrint("TSK Error: $e");
-    }
-  }
-      setState(() => _tskData = tempTSK);
     } catch (e) {
       debugPrint("TSK Error: $e");
     }
@@ -342,7 +323,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
             const Divider(color: Colors.white12),
             Expanded(
               child: refs.isEmpty 
-                ? Center(child: Text("నోట్స్ లేవు బ్రో (Key: $key)", style: const TextStyle(color: Colors.white30)))
+                ? Center(child: Text("రిఫరెన్సులు లేవు బ్రో (Key: $key)", style: const TextStyle(color: Colors.white30)))
                 : ListView.builder(
                     itemCount: refs.length,
                     itemBuilder: (context, i) => ListTile(
@@ -357,15 +338,6 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     );
   }
 
-  void _shareVerses() {
-    String textToShare = "${widget.bookName} ${widget.chapterNumber}\n\n";
-    var sortedIndices = selectedVerseIndices.toList()..sort();
-    for (var index in sortedIndices) {
-      textToShare += "${widget.verses[index]['num']}. ${widget.verses[index]['text']}\n";
-    }
-    Share.share(textToShare);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -374,27 +346,14 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
         backgroundColor: Colors.black,
         title: Text("${widget.bookName} ${widget.chapterNumber}", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20)),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          if (selectedVerseIndices.isNotEmpty)
-            IconButton(icon: const Icon(Icons.share, color: Colors.blueAccent), onPressed: _shareVerses),
-        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(15),
         itemCount: widget.verses.length,
         itemBuilder: (context, index) {
-          bool isSelected = selectedVerseIndices.contains(index);
           return ListTile(
             contentPadding: EdgeInsets.zero,
-            onLongPress: () => setState(() => selectedVerseIndices.add(index)),
-            onTap: () {
-              if (selectedVerseIndices.isNotEmpty) {
-                setState(() => isSelected ? selectedVerseIndices.remove(index) : selectedVerseIndices.add(index));
-              } else {
-                _showReferences(widget.verses[index]['num']!);
-              }
-            },
+            onTap: () => _showReferences(widget.verses[index]['num']!),
             title: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
