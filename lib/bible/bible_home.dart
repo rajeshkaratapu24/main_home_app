@@ -20,7 +20,8 @@ class _BibleHomeState extends State<BibleHome> {
   String selectedChapter = "1";
   List<String> books = [];
   List<String> chapters = [];
-  List<Map<String, String>> verses = [];
+  List<Map<String, dynamic>> verses = []; // globalIndex కోసం dynamic చేశాను
+
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isMusicPlaying = false;
   String? bgmUrl;
@@ -95,7 +96,7 @@ class _BibleHomeState extends State<BibleHome> {
         }
       });
     } catch (e) {
-      debugPrint("Error loading XML: $e");
+      debugPrint("Error: $e");
     }
   }
 
@@ -113,14 +114,31 @@ class _BibleHomeState extends State<BibleHome> {
 
   void _updateVerses(String bookName, String chapterNum) {
     if (_document == null) return;
-    final book = _document!.findAllElements('BIBLEBOOK').firstWhere((e) => e.getAttribute('bname') == bookName);
-    final chapter = book.findAllElements('CHAPTER').firstWhere((e) => e.getAttribute('cnumber') == chapterNum);
-    setState(() {
-      verses = chapter.findAllElements('VERS').map((e) => {
-        'num': e.getAttribute('vnumber')!,
-        'text': e.innerText.trim()
-      }).toList();
-    });
+    final bookElements = _document!.findAllElements('BIBLEBOOK').toList();
+    
+    // Global Index లెక్కించడానికి (JSON ఫైల్ వెతకడానికి ఇది అవసరం)
+    int globalIdx = 0;
+    for (var b in bookElements) {
+      final bName = b.getAttribute('bname');
+      final chaptersInBook = b.findAllElements('CHAPTER').toList();
+      for (var c in chaptersInBook) {
+        final cNum = c.getAttribute('cnumber');
+        if (bName == bookName && cNum == chapterNum) {
+          setState(() {
+            verses = c.findAllElements('VERS').map((e) {
+              globalIdx++;
+              return {
+                'num': e.getAttribute('vnumber')!,
+                'text': e.innerText.trim(),
+                'globalIndex': globalIdx // ప్రతి వచనానికి ఒక నంబర్ ఇస్తున్నాం
+              };
+            }).toList();
+          });
+          return;
+        }
+        globalIdx += c.findAllElements('VERS').length;
+      }
+    }
   }
 
   void _goToReadingPage(int verseIndex) {
@@ -146,6 +164,7 @@ class _BibleHomeState extends State<BibleHome> {
         backgroundColor: Colors.black,
         title: Text("B I B L E", style: GoogleFonts.ubuntu(color: Colors.white, letterSpacing: 4, fontSize: 18, fontWeight: FontWeight.bold)),
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(isMusicPlaying ? Icons.music_note : Icons.music_off, color: Colors.blueAccent),
@@ -231,7 +250,7 @@ class BibleReadingPage extends StatefulWidget {
   final String bookName;
   final String englishBookName;
   final String chapterNumber;
-  final List<Map<String, String>> verses;
+  final List<Map<String, dynamic>> verses;
   final int initialScrollIndex;
 
   const BibleReadingPage({
@@ -248,7 +267,8 @@ class BibleReadingPage extends StatefulWidget {
 }
 
 class _BibleReadingPageState extends State<BibleReadingPage> {
-  // ఇంగ్లీష్ బుక్ నేమ్స్ కి TSK కోడ్స్ మ్యాపింగ్
+  Set<int> selectedVerseIndices = {};
+  
   final Map<String, String> tskBookCodes = {
     "Genesis": "Gen", "Exodus": "Exod", "Leviticus": "Lev", "Numbers": "Num",
     "Deuteronomy": "Deut", "Joshua": "Josh", "Judges": "Judg", "Ruth": "Ruth",
@@ -270,17 +290,21 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     "3 John": "3John", "Jude": "Jude", "Revelation": "Rev",
   };
 
-  void _showReferences(String verseNum) async {
-    String bookCode = tskBookCodes[widget.englishBookName] ?? widget.englishBookName;
-    String targetKey = "$bookCode.${widget.chapterNumber}.$verseNum";
+  void _showReferences(int index) {
+    final verse = widget.verses[index];
+    final String verseNum = verse['num']!;
+    final int globalIdx = verse['globalIndex']!;
     
-    // లోడింగ్ చూపిస్తున్నాం
+    // ఏ ఫైల్ లో డేటా ఉందో లెక్క కడుతున్నాం (32 ఫైల్స్, ఒక్కో ఫైల్ లో 1000 వచనాలు)
+    int fileNum = (globalIdx ~/ 1000) + 1;
+    if (fileNum > 32) fileNum = 32;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF121212),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => FutureBuilder<List<String>>(
-        future: _findRefs(targetKey),
+        future: _fetchFromJSON(fileNum, verseNum),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
@@ -295,7 +319,7 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
                 const Divider(color: Colors.white12),
                 Expanded(
                   child: refs.isEmpty 
-                    ? Center(child: Text("రిఫరెన్సులు లేవు బ్రో\n(Key: $targetKey)", textAlign: TextAlign.center, style: const TextStyle(color: Colors.white30)))
+                    ? const Center(child: Text("నోట్స్ లేవు బ్రో", style: TextStyle(color: Colors.white30)))
                     : ListView.builder(
                         itemCount: refs.length,
                         itemBuilder: (context, i) => ListTile(
@@ -312,23 +336,30 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
     );
   }
 
-  // ఫైల్ ని వెతికే అసలైన లాజిక్ (మెమరీ ఆదా చేస్తుంది)
-  Future<List<String>> _findRefs(String targetKey) async {
+  Future<List<String>> _fetchFromJSON(int fileNum, String verseNum) async {
     try {
-      final String data = await rootBundle.loadString('assets/tsk.txt');
-      final lines = data.split(RegExp(r'\r?\n'));
-      List<String> found = [];
-      for (var line in lines) {
-        if (line.trim().isEmpty || line.startsWith('From')) continue;
-        final parts = line.trim().split(RegExp(r'\s+'));
-        if (parts.isNotEmpty && parts[0] == targetKey) {
-          if (parts.length >= 2) found.add(parts[1]);
-        }
+      final String response = await rootBundle.loadString('assets/references/$fileNum.json');
+      final Map<String, dynamic> data = json.decode(response);
+      
+      String bookCode = tskBookCodes[widget.englishBookName] ?? widget.englishBookName;
+      String key = "$bookCode.${widget.chapterNumber}.$verseNum";
+      
+      if (data.containsKey(key)) {
+        return List<String>.from(data[key]);
       }
-      return found;
     } catch (e) {
-      return [];
+      debugPrint("JSON Error: $e");
     }
+    return [];
+  }
+
+  void _shareVerses() {
+    String textToShare = "${widget.bookName} ${widget.chapterNumber}\n\n";
+    var sortedIndices = selectedVerseIndices.toList()..sort();
+    for (var index in sortedIndices) {
+      textToShare += "${widget.verses[index]['num']}. ${widget.verses[index]['text']}\n";
+    }
+    Share.share(textToShare);
   }
 
   @override
@@ -339,14 +370,26 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
         backgroundColor: Colors.black,
         title: Text("${widget.bookName} ${widget.chapterNumber}", style: GoogleFonts.balooTammudu2(color: Colors.white, fontSize: 20)),
         centerTitle: true,
+        actions: [
+          if (selectedVerseIndices.isNotEmpty)
+            IconButton(icon: const Icon(Icons.share, color: Colors.blueAccent), onPressed: _shareVerses),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(15),
         itemCount: widget.verses.length,
         itemBuilder: (context, index) {
+          bool isSelected = selectedVerseIndices.contains(index);
           return ListTile(
             contentPadding: EdgeInsets.zero,
-            onTap: () => _showReferences(widget.verses[index]['num']!),
+            onLongPress: () => setState(() => selectedVerseIndices.add(index)),
+            onTap: () {
+              if (selectedVerseIndices.isNotEmpty) {
+                setState(() => isSelected ? selectedVerseIndices.remove(index) : selectedVerseIndices.add(index));
+              } else {
+                _showReferences(index);
+              }
+            },
             title: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
