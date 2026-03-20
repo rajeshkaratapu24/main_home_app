@@ -1,3 +1,4 @@
+import 'dart:convert'; // JSON కోసం
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
@@ -6,7 +7,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:audioplayers/audioplayers.dart'; 
 import 'package:firebase_database/firebase_database.dart'; 
 import 'bible_search.dart';
- // పాత్ సరిచూసుకో బ్రో
 
 class BibleHome extends StatefulWidget {
   const BibleHome({super.key});
@@ -22,9 +22,8 @@ class _BibleHomeState extends State<BibleHome> {
   
   List<String> books = [];
   List<String> chapters = [];
-  List<Map<String, String>> verses = []; // వచనాల నంబర్స్ కోసం
+  List<Map<String, String>> verses = [];
 
-  // మ్యూజిక్ ప్లేయర్
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isMusicPlaying = false;
   String? bgmUrl;
@@ -32,14 +31,14 @@ class _BibleHomeState extends State<BibleHome> {
   final Map<String, String> teluguBooks = {
     "Genesis": "ఆదికాండము", "Exodus": "నిర్గమకాండము", "Leviticus": "లేవీయకాండము",
     "Numbers": "సంఖ్యాకాండము", "Deuteronomy": "ద్వితీయోపదేశకాండము", "Joshua": "యెహోషువ",
-    "Judges": "న్యాయాధిపతులు", "Ruth": "రూతు", "1 Samuel": "1 సమూయేలు",
+    "Judges": "న్యాయาధిపతులు", "Ruth": "రూతు", "1 Samuel": "1 సమూయేలు",
     "2 Samuel": "2 సమూయేలు", "1 Kings": "1 రాజులు", "2 Kings": "2 రాజులు",
     "1 Chronicles": "1 దినవృత్తాంతములు", "2 Chronicles": "2 దినవృత్తాంతములు",
     "Ezra": "ఎజ్రా", "Nehemiah": "నెహెమ్యా", "Esther": "ఎస్తేరు",
     "Job": "యోబు", "Psalm": "కీర్తనలు", "Psalms": "కీర్తనలు", 
     "Proverbs": "సామెతలు", "Ecclesiastes": "ప్రసంగి", "Song of Solomon": "పరమగీతము",
     "Isaiah": "యెషయా", "Jeremiah": "యిర్మీయా", "Lamentations": "విలాపవాక్యములు",
-    "Ezekiel": "యెహెజ్కేలు", "Daniel": "దానియేలు", "Hosea": "హోషేయ",
+    "Ezekiel": "యెహెజ్కేలు", "Daniel": "దానియేలు", "Hosea": "ホషేయ",
     "Joel": "యోవేలు", "Amos": "ఆమోసు", "Obadiah": "ఓబద్యా",
     "Jonah": "యోనా", "Micah": "మీకా", "Nahum": "నహూము",
     "Habakkuk": "హబక్కుకు", "Zephaniah": "జెఫన్యా", "Haggai": "హగ్గయి",
@@ -134,7 +133,6 @@ class _BibleHomeState extends State<BibleHome> {
     });
   }
 
-  // రీడింగ్ పేజీకి వెళ్ళడానికి ఫంక్షన్
   void _goToReadingPage(int verseIndex) {
     Navigator.push(
       context,
@@ -144,6 +142,7 @@ class _BibleHomeState extends State<BibleHome> {
           chapterNumber: selectedChapter,
           verses: verses,
           initialScrollIndex: verseIndex,
+          englishBookName: selectedBook, // ఇంగ్లీష్ పేరు కూడా పంపిస్తున్నాం
         ),
       ),
     );
@@ -152,7 +151,7 @@ class _BibleHomeState extends State<BibleHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // ప్యూర్ బ్లాక్
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text("B I B L E", style: GoogleFonts.ubuntu(color: Colors.white, letterSpacing: 4, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -193,7 +192,6 @@ class _BibleHomeState extends State<BibleHome> {
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
           : Column(
               children: [
-                // హెడర్స్ (BOOKS | CHAPTERS | VERSES)
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: const BoxDecoration(
@@ -207,11 +205,9 @@ class _BibleHomeState extends State<BibleHome> {
                     ],
                   ),
                 ),
-                // 3 కాలమ్స్ (Books | Chapters | Verses)
                 Expanded(
                   child: Row(
                     children: [
-                      // కాలమ్ 1: BOOKS
                       Expanded(
                         flex: 5,
                         child: Container(
@@ -229,7 +225,7 @@ class _BibleHomeState extends State<BibleHome> {
                                   });
                                 },
                                 child: Container(
-                                  color: isSelected ? Colors.white12 : Colors.transparent, // సెలెక్ట్ అయినప్పుడు గ్రే కలర్
+                                  color: isSelected ? Colors.white12 : Colors.transparent,
                                   padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                                   child: Row(
                                     children: [
@@ -253,8 +249,6 @@ class _BibleHomeState extends State<BibleHome> {
                           ),
                         ),
                       ),
-                      
-                      // కాలమ్ 2: CHAPTERS
                       Expanded(
                         flex: 2,
                         child: Container(
@@ -289,8 +283,6 @@ class _BibleHomeState extends State<BibleHome> {
                           ),
                         ),
                       ),
-
-                      // కాలమ్ 3: VERSES
                       Expanded(
                         flex: 2,
                         child: ListView.builder(
@@ -298,7 +290,7 @@ class _BibleHomeState extends State<BibleHome> {
                           itemBuilder: (context, index) {
                             String vNum = verses[index]['num']!;
                             return InkWell(
-                              onTap: () => _goToReadingPage(index), // నొక్కగానే రీడింగ్ పేజీ ఓపెన్ అవుతుంది
+                              onTap: () => _goToReadingPage(index),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 15),
                                 alignment: Alignment.center,
@@ -321,10 +313,11 @@ class _BibleHomeState extends State<BibleHome> {
 }
 
 // =========================================================================
-// రీడింగ్ పేజీ (ఇక్కడే వచనాలు చదువుకోవచ్చు, షేర్ చేయొచ్చు)
+// రీడింగ్ పేజీ - ఇక్కడే మార్పులు జరిగాయి
 // =========================================================================
 class BibleReadingPage extends StatefulWidget {
   final String bookName;
+  final String englishBookName; // క్రాస్ రిఫరెన్స్ కోసం
   final String chapterNumber;
   final List<Map<String, String>> verses;
   final int initialScrollIndex;
@@ -332,6 +325,7 @@ class BibleReadingPage extends StatefulWidget {
   const BibleReadingPage({
     super.key,
     required this.bookName,
+    required this.englishBookName,
     required this.chapterNumber,
     required this.verses,
     required this.initialScrollIndex,
@@ -343,6 +337,81 @@ class BibleReadingPage extends StatefulWidget {
 
 class _BibleReadingPageState extends State<BibleReadingPage> {
   Set<int> selectedVerseIndices = {};
+  Map<String, dynamic> _tskData = {}; // క్రాస్ రిఫరెన్స్ డేటా
+
+  // ఇంగ్లీష్ పేరు నుండి TSK షార్ట్ కోడ్ మ్యాపింగ్
+  final Map<String, String> tskBookCodes = {
+    "Genesis": "Gen", "Exodus": "Exo", "Leviticus": "Lev", "Numbers": "Num",
+    "Deuteronomy": "Deu", "Joshua": "Jos", "Judges": "Jdg", "Ruth": "Rut",
+    "1 Samuel": "1Sa", "2 Samuel": "2Sa", "1 Kings": "1Ki", "2 Kings": "2Ki",
+    "1 Chronicles": "1Ch", "2 Chronicles": "2Ch", "Ezra": "Ezr", "Nehemiah": "Neh",
+    "Esther": "Est", "Job": "Job", "Psalm": "Psa", "Psalms": "Psa",
+    "Proverbs": "Pro", "Ecclesiastes": "Ecc", "Song of Solomon": "Sng",
+    "Isaiah": "Isa", "Jeremiah": "Jer", "Lamentations": "Lam", "Ezekiel": "Eze",
+    "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joe", "Amos": "Amo",
+    "Obadiah": "Oba", "Jonah": "Jon", "Micah": "Mic", "Nahum": "Nah",
+    "Habakkuk": "Hab", "Zephaniah": "Zep", "Haggai": "Hag", "Zechariah": "Zec",
+    "Malachi": "Mal", "Matthew": "Mat", "Mark": "Mar", "Luke": "Luk",
+    "John": "Joh", "Acts": "Act", "Romans": "Rom", "1 Corinthians": "1Co",
+    "2 Corinthians": "2Co", "Galatians": "Gal", "Ephesians": "Eph",
+    "Philippians": "Phi", "Colossians": "Col", "1 Thessalonians": "1Th",
+    "2 Thessalonians": "2Th", "1 Timothy": "1Ti", "2 Timothy": "2Ti",
+    "Titus": "Tit", "Philemon": "Phm", "Hebrews": "Heb", "James": "Jam",
+    "1 Peter": "1Pe", "2 Peter": "2Pe", "1 John": "1Jo", "2 John": "2Jo",
+    "3 John": "3Jo", "Jude": "Jud", "Revelation": "Rev",
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTSK();
+  }
+
+  // TSK JSON డేటా లోడ్ చేయడం
+  Future<void> _loadTSK() async {
+    try {
+      final String response = await rootBundle.loadString('assets/tsk.json');
+      setState(() {
+        _tskData = json.decode(response);
+      });
+    } catch (e) {
+      debugPrint("TSK Error: $e");
+    }
+  }
+
+  // రిఫరెన్స్ బాక్స్ చూపించే ఫంక్షన్
+  void _showReferences(String verseNum) {
+    String bookCode = tskBookCodes[widget.englishBookName] ?? widget.englishBookName;
+    String key = "$bookCode.${widget.chapterNumber}.$verseNum";
+    List<dynamic> refs = _tskData[key] ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF121212),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text("క్రాస్ రిఫరెన్సులు: ${widget.bookName} ${widget.chapterNumber}:$verseNum", 
+                 style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+            const Divider(color: Colors.white12),
+            Expanded(
+              child: refs.isEmpty 
+                ? const Center(child: Text("నోట్స్ లేవు బ్రో", style: TextStyle(color: Colors.white30)))
+                : ListView.builder(
+                    itemCount: refs.length,
+                    itemBuilder: (context, i) => ListTile(
+                      leading: const Icon(Icons.link, color: Colors.blueAccent, size: 18),
+                      title: Text(refs[i].toString(), style: const TextStyle(color: Colors.white70)),
+                    ),
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _shareVerses() {
     String textToShare = "${widget.bookName} ${widget.chapterNumber}\n\n";
@@ -374,7 +443,6 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
         itemCount: widget.verses.length,
         itemBuilder: (context, index) {
           bool isSelected = selectedVerseIndices.contains(index);
-          // మనం సెలెక్ట్ చేసిన వచనం దగ్గర బ్యాక్‌గ్రౌండ్ కొంచెం హైలైట్ అవుతుంది
           bool isInitial = index == widget.initialScrollIndex && selectedVerseIndices.isEmpty;
 
           return ListTile(
@@ -387,27 +455,39 @@ class _BibleReadingPageState extends State<BibleReadingPage> {
                 setState(() {
                   isSelected ? selectedVerseIndices.remove(index) : selectedVerseIndices.add(index);
                 });
+              } else {
+                // సెలెక్షన్ మోడ్ లో లేనప్పుడు నొక్కితే రిఫరెన్సులు చూపిస్తుంది
+                _showReferences(widget.verses[index]['num']!);
               }
             },
             title: Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
-                color: isInitial ? Colors.white10 : Colors.transparent, // సెలెక్ట్ చేసిన వచనానికి చిన్న హైలైట్
+                color: isInitial ? Colors.white10 : Colors.transparent,
                 borderRadius: BorderRadius.circular(5)
               ),
-              child: RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "${widget.verses[index]['num']}. ",
-                      style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "${widget.verses[index]['num']}. ",
+                            style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          TextSpan(
+                            text: widget.verses[index]['text']!,
+                            style: GoogleFonts.balooTammudu2(fontSize: 18, color: Colors.white, height: 1.6),
+                          ),
+                        ],
+                      ),
                     ),
-                    TextSpan(
-                      text: widget.verses[index]['text']!,
-                      style: GoogleFonts.balooTammudu2(fontSize: 18, color: Colors.white, height: 1.6),
-                    ),
-                  ],
-                ),
+                  ),
+                  // రిఫరెన్స్ ఐకాన్
+                  Icon(Icons.auto_awesome_motion, color: Colors.white12, size: 16),
+                ],
               ),
             ),
           );
