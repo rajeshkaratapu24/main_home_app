@@ -46,7 +46,6 @@ flutter:
   assets:
     - assets/bible.xml
     - assets/references/
-    - assets/tsk.txt
     # ఒకవేళ ఇమేజెస్ ఉంటే ఇక్కడ యాడ్ చెయ్
     # - assets/images/logo.png
 
