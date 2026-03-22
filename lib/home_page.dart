@@ -1,260 +1,215 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
 import 'package:google_fonts/google_fonts.dart';
-import 'bible/bible_home.dart';
-import '/songs_page.dart';
-import 'project_h/project_h_splash.dart';
-import 'main.dart'; 
-import 'jitsi_live_page.dart';
-import 'app_drawer.dart'; // <--- మన కొత్త సైడ్ మెనూ ఫైల్ ని ఇక్కడ ఇంపోర్ట్ చేశాం!
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-  
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  void _onItemTapped(int index) {
-    if (index == 1) { 
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const BibleHome()));
-    } else if (index == 2) { 
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const SongsPage()));
-    } else if (index == 3) { 
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectHSplash()));
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
-  }
-
-  Future<bool> _showExitConfirmation() async {
-    bool isLight = Theme.of(context).brightness == Brightness.light;
-    Color cardColor = isLight ? Colors.white : const Color(0xFF1A1A1A);
-    Color textColor = isLight ? Colors.black : Colors.white;
-    Color subTextColor = isLight ? Colors.black54 : Colors.white70;
-
-    return await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: Text("Exit App", style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
-        content: Text("Do you want to close WORLD OF GOD?", style: TextStyle(color: subTextColor)),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      // 1. టాప్ బార్ (WOG Logo & Menu)
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white, size: 30),
+          onPressed: () {},
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("NO", style: TextStyle(color: Colors.blueAccent)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("YES", style: TextStyle(color: Colors.redAccent)),
+          Padding(
+            padding: const EdgeInsets.only(right: 20, top: 10),
+            child: Text(
+              "WOG",
+              style: GoogleFonts.ubuntu(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w300,
+                letterSpacing: 2,
+              ),
+            ),
           ),
         ],
       ),
-    ) ?? false;
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // 2. DAILY VERSE CARD
+            _buildGradientCard(
+              title: "DAILY VERSE",
+              content: "యెహోవా నా కాపరి",
+              subContent: "- కీర్తనలు 1:1",
+              icon: Icons.menu_book_rounded,
+              colors: [const Color(0xFF1A237E), const Color(0xFF0D47A1)],
+            ),
+            const SizedBox(height: 20),
+
+            // 3. NOTIFICATIONS CARD
+            _buildGradientCard(
+              title: "NOTIFICATIONS",
+              content: "ఈరోజు లైవ్ లో ప్రార్థనలు జరుగుతాయి.",
+              subContent: "",
+              icon: Icons.notifications_none_rounded,
+              colors: [const Color(0xFF4A0000), const Color(0xFF8B0000)],
+            ),
+            const SizedBox(height: 20),
+
+            // 4. LIVE SECTION CARD
+            _buildLiveCard(),
+          ],
+        ),
+      ),
+      // 5. BOTTOM NAVIGATION BAR
+      bottomNavigationBar: _buildBottomNav(),
+    );
   }
 
-  Widget _buildPremiumCard({required Widget child, required bool isLight}) {
+  // గ్రేడియంట్ కార్డ్స్ కోసం కామన్ మెథడ్
+  Widget _buildGradientCard({
+    required String title,
+    required String content,
+    required String subContent,
+    required IconData icon,
+    required List<Color> colors,
+  }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(25),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isLight ? Colors.grey[100] : const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(15),
       ),
-      child: child,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.ubuntu(
+                  color: Colors.white70,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              Icon(icon, color: Colors.white70, size: 24),
+            ],
+          ),
+          const SizedBox(height: 30),
+          Center(
+            child: Text(
+              content,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.balooTammudu2(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          if (subContent.isNotEmpty)
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                subContent,
+                style: GoogleFonts.ubuntu(color: Colors.white60, fontSize: 14),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
-  void _joinJitsiLive() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) =>  JitsiLivePage()),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    bool isLight = Theme.of(context).brightness == Brightness.light;
-    Color bgColor = isLight ? Colors.white : Colors.black;
-    Color textColor = isLight ? Colors.black : Colors.white;
-    Color subTextColor = isLight ? Colors.black54 : Colors.white70;
-
-    return PopScope(
-      canPop: false, 
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
-          Navigator.pop(context);
-          return;
-        }
-        final shouldPop = await _showExitConfirmation();
-        if (shouldPop && context.mounted) {
-          SystemNavigator.pop(); 
-        }
-      },
-      child: Scaffold(
-        key: _scaffoldKey, 
-        backgroundColor: bgColor, 
-        appBar: AppBar(
-          backgroundColor: bgColor, 
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.menu, color: textColor),
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(), 
-          ),
-          title: Text(
-            "W    O    G",
-            style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: 4),
-          ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: Icon(isLight ? Icons.nights_stay : Icons.wb_sunny_outlined, color: textColor),
-              onPressed: () {
-                themeNotifier.value = isLight ? ThemeMode.dark : ThemeMode.light;
-              },
-            ),
-          ],
-        ),
-
-        // ---------------------------------------------------------
-        // మ్యాజిక్ ఇక్కడే! సైడ్ మెనూ మొత్తం ఈ ఒక్క లైన్ తో వస్తుంది
-        // ---------------------------------------------------------
-        drawer: const AppDrawer(),
-
-        body: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-          children: [
-            _buildPremiumCard(
-              isLight: isLight,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("D A I L Y   V E R S E", style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 3)),
-                  const SizedBox(height: 20),
-                  Text(
-                    "నేను నీకు తోడైయున్నాను,\nభయపడకుము. నీ దేవుడనైన\nనేను నిన్ను బలపరతును.",
-                    style: GoogleFonts.balooTammudu2(color: textColor, fontSize: 22, height: 1.5),
-                  ),
-                  const SizedBox(height: 15),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text("— యెషయా 41:10", style: TextStyle(color: subTextColor, fontSize: 14)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 25),
-
-            _buildPremiumCard(
-              isLight: isLight,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("N O T I F I C A T I O N", style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 3)),
-                  const SizedBox(height: 20),
-                  Text("నేటి ధ్యానం", style: GoogleFonts.balooTammudu2(color: textColor, fontSize: 20)),
-                  const SizedBox(height: 5),
-                  Text(
-                    "దేవుని వాక్యం నీ పాదములకు దీపము, నీ త్రోవకు వెలుగు.",
-                    style: GoogleFonts.balooTammudu2(color: subTextColor, fontSize: 18, height: 1.5),
-                  ),
-                  const SizedBox(height: 25),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Text("EXPLORE NOW  →", style: TextStyle(color: isLight ? Colors.blueAccent : Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 25),
-
-            _buildPremiumCard(
-              isLight: isLight,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.sensors, color: Colors.redAccent, size: 20),
-                      const SizedBox(width: 10),
-                      Text("L I V E   S T R E A M", style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 3)),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text("Evening Fellowship & Prayer", style: GoogleFonts.ubuntu(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Join our daily live session with the community. Connect directly via Jitsi.",
-                    style: TextStyle(color: subTextColor, fontSize: 14, height: 1.4),
-                  ),
-                  const SizedBox(height: 25),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  // లైవ్ కార్డ్ డిజైన్
+  Widget _buildLiveCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF121212),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.red),
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(backgroundColor: Colors.red, radius: 4),
+                    const SizedBox(width: 6),
+                    Text(
+                      "LIVE",
+                      style: GoogleFonts.ubuntu(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
-                      onPressed: _joinJitsiLive, 
-                      child: const Text("JOIN LIVE NOW", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2)),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
-          ],
-        ),
-
-        bottomNavigationBar: Theme(
-          data: ThemeData(
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-          ),
-          child: BottomNavigationBar(
-            backgroundColor: isLight ? Colors.white : const Color(0xFF1A1A1A), 
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: isLight ? Colors.blueAccent : Colors.white,
-            unselectedItemColor: isLight ? Colors.black38 : Colors.white38,
-            elevation: 20,
-            selectedFontSize: 10,
-            unselectedFontSize: 10,
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 5), child: Icon(Icons.home_outlined)),
-                activeIcon: Padding(padding: EdgeInsets.only(bottom: 5), child: Icon(Icons.home)),
-                label: "H O M E",
-              ),
-              BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 5), child: Icon(Icons.menu_book_outlined)),
-                label: "B I B L E",
-              ),
-              BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 5), child: Icon(Icons.music_note_outlined)),
-                label: "S O N G S",
-              ),
-              BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 5), child: Icon(Icons.hub_outlined)),
-                label: "P R O J E C T  H",
+                  ],
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 15),
+          Text(
+            "Evening Fellowship & Prayer",
+            style: GoogleFonts.ubuntu(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Join our daily live session with the community. Connect directly via Jitsi.",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.ubuntu(color: Colors.white54, fontSize: 14),
+          ),
+        ],
       ),
+    );
+  }
+
+  // బాటమ్ నావిగేషన్ బార్
+  Widget _buildBottomNav() {
+    return Container(
+      height: 70,
+      decoration: const BoxDecoration(
+        color: Color(0xFF0A0A0A),
+        border: Border(top: BorderSide(color: Colors.white10)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _navIcon(Icons.library_books_outlined),
+          _navIcon(Icons.menu_book_outlined),
+          _navIcon(Icons.home_filled, isSelected: true),
+          _navIcon(Icons.center_focus_weak_outlined), // ఆడియో ఐకాన్ కోసం
+          _navIcon(Icons.person_outline_rounded),
+        ],
+      ),
+    );
+  }
+
+  Widget _navIcon(IconData icon, {bool isSelected = false}) {
+    return Icon(
+      icon,
+      color: isSelected ? Colors.white : Colors.white38,
+      size: 28,
     );
   }
 }
